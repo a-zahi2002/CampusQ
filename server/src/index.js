@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import pool from './config/db.js'
-
+import authRoutes from './routes/authRoutes.js'
 
 dotenv.config()
 
@@ -21,6 +21,9 @@ pool.query('SELECT NOW()', (err, res) => {
     console.log('Database connected at:', res.rows[0].now)
   }
 })
+
+// Routes
+app.use('/api/auth', authRoutes)
 
 // Test route
 app.get('/', (req, res) => {
