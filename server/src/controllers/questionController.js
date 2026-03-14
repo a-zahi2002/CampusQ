@@ -98,3 +98,67 @@ export const getQuestionById = async (req, res) => {
     res.status(500).json({ message: 'Server error.' })
   }
 }
+
+// Search questions
+export const searchQuestions = async (req, res) => {
+  const { keyword, tag } = req.query
+
+  try {
+    let query = `
+      SELECT q.*, 
+        ARRAY_AGG(t.tag_name) as tags,
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM question_tags qt2
+            JOIN tags t2 ON qt2.tag_id = t2.tag_id
+            WHERE qt2.question_id = q.question_id 
+            AND LOWER(t2.tag_name) LIKE LOWER($1)
+          ) THEN 1
+          WHEN LOWER(q.title) LIKE LOWER($1) THEN 2
+          WHEN LOWER(q.description) LIKE LOWER($1) THEN 3
+          ELSE 4
+        END as relevance
+      FROM questions q
+      LEFT JOIN question_tags qt ON q.question_id = qt.question_id
+      LEFT JOIN tags t ON qt.tag_id = t.tag_id
+    `
+
+    const params = [`%${keyword || tag || ''}%`]
+
+    if (tag) {
+      query += `
+        WHERE EXISTS (
+          SELECT 1 FROM question_tags qt3
+          JOIN tags t3 ON qt3.tag_id = t3.tag_id
+          WHERE qt3.question_id = q.question_id
+          AND LOWER(t3.tag_name) = LOWER($2)
+        )
+      `
+      params.push(tag)
+    } else if (keyword) {
+      query += `
+        WHERE LOWER(q.title) LIKE LOWER($1)
+        OR LOWER(q.description) LIKE LOWER($1)
+        OR EXISTS (
+          SELECT 1 FROM question_tags qt3
+          JOIN tags t3 ON qt3.tag_id = t3.tag_id
+          WHERE qt3.question_id = q.question_id
+          AND LOWER(t3.tag_name) LIKE LOWER($1)
+        )
+      `
+    }
+
+    query += `
+      GROUP BY q.question_id
+      ORDER BY relevance ASC, q.created_at DESC
+    `
+
+    const results = await pool.query(query, params)
+
+    res.status(200).json({ questions: results.rows })
+
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Server error.' })
+  }
+}
