@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import pool from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
+import questionRoutes from './routes/questionRoutes.js'
 
 dotenv.config()
 
@@ -24,6 +25,7 @@ pool.query('SELECT NOW()', (err, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/questions', questionRoutes)
 
 // Test route
 app.get('/', (req, res) => {
