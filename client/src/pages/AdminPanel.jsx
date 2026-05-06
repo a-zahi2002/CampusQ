@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
   Users, Flag, FileText, ShieldAlert, 
   Trash2, EyeOff, Eye, CheckCircle, 
-  XCircle, Search, Loader2, ArrowRight
+  XCircle, Search, Loader2, ArrowRight, LogOut
 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const AdminPanel = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('users');
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,9 @@ const AdminPanel = () => {
   if (user?.role !== 'admin') return <Navigate to="/feed" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex">
       {/* Admin Sidebar */}
       <aside className="w-64 bg-slate-900 text-white sticky top-0 h-screen p-6">
         <div className="flex items-center gap-3 mb-10 px-2">
@@ -107,12 +111,23 @@ const AdminPanel = () => {
           </button>
         </nav>
 
-        <div className="absolute bottom-10 left-6 right-6">
+        <div className="absolute bottom-10 left-6 right-6 space-y-4">
           <div className="bg-slate-800 p-4 rounded-2xl">
             <p className="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">Logged in as</p>
             <p className="font-bold text-sm truncate">{user.nickname}</p>
             <p className="text-[10px] text-indigo-400 font-black mt-1">SUPER ADMIN</p>
           </div>
+          
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-500 py-3 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -266,6 +281,7 @@ const AdminPanel = () => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };

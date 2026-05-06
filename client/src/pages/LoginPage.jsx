@@ -9,6 +9,7 @@ const LoginPage = () => {
     password: '',
     role: 'student'
   });
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -83,6 +84,18 @@ const LoginPage = () => {
               >
                 <UserCircle className="h-4 w-4" />
                 Lecturer
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, role: 'admin'})}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-bold transition-all ${
+                  formData.role === 'admin' 
+                    ? 'bg-white text-indigo-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Lock className="h-4 w-4" />
+                Admin
               </button>
             </div>
 

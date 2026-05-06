@@ -7,6 +7,7 @@ import {
   User, Clock, Tag as TagIcon, CheckCircle, 
   Star, ChevronLeft, Loader2, Send 
 } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 const QuestionDetailPage = () => {
   const { id } = useParams();
@@ -99,8 +100,10 @@ const QuestionDetailPage = () => {
   const isOwner = user && user.id === question.user_id;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
         <button 
           onClick={() => navigate('/feed')}
           className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors mb-6 font-bold"
@@ -269,7 +272,8 @@ const QuestionDetailPage = () => {
         )}
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 const MessageSquare = ({ className }) => (

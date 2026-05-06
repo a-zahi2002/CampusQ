@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Trophy, Medal, Star, TrendingUp, Calendar, Globe, Loader2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const LeaderboardPage = () => {
   const [activeTab, setActiveTab] = useState('all-time');
@@ -44,8 +45,10 @@ const LeaderboardPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
         <Link 
           to="/feed"
           className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-bold mb-8 transition-colors"
@@ -177,7 +180,8 @@ const LeaderboardPage = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default LeaderboardPage;

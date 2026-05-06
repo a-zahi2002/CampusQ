@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import QuestionCard from '../components/QuestionCard';
 import { Search, Filter, Hash, Loader2, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 const FeedPage = () => {
   const [questions, setQuestions] = useState([]);
@@ -66,8 +67,10 @@ const FeedPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar for Tags */}
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="flex">
+        {/* Sidebar for Tags */}
       <aside className="w-64 bg-white border-r hidden lg:block sticky top-0 h-screen overflow-y-auto p-6">
         <div className="flex items-center gap-2 mb-8 text-indigo-600">
           <Filter className="h-5 w-5" />
@@ -153,6 +156,7 @@ const FeedPage = () => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };
