@@ -35,7 +35,16 @@ export const getAnswersByQuestionId = async (req, res) => {
 
   try {
     const answers = await pool.query(
-      `SELECT * FROM answers WHERE question_id = $1 AND is_hidden = FALSE ORDER BY created_at ASC`,
+      `SELECT a.*, 
+        COALESCE(AVG(r.rating), 0) as avg_rating,
+        COALESCE(s.nickname, l.nickname) as author_nickname
+       FROM answers a
+       LEFT JOIN answer_ratings r ON a.answer_id = r.answer_id
+       LEFT JOIN students s ON a.author_id = s.student_id AND a.author_role = 'student'
+       LEFT JOIN lecturers l ON a.author_id = l.lecturer_id AND a.author_role = 'lecturer'
+       WHERE a.question_id = $1 AND a.is_hidden = FALSE
+       GROUP BY a.answer_id, s.nickname, l.nickname
+       ORDER BY a.is_accepted DESC, avg_rating DESC, a.created_at ASC`,
       [questionId]
     )
 

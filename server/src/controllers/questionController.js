@@ -103,12 +103,15 @@ export const getQuestionById = async (req, res) => {
   try {
     const question = await pool.query(
       `SELECT q.*, 
-        ARRAY_AGG(t.tag_name) as tags
+        COALESCE(ARRAY_AGG(DISTINCT t.tag_name) FILTER (WHERE t.tag_name IS NOT NULL), '{}') as tags,
+        COALESCE(s.nickname, l.nickname) as author_nickname
        FROM questions q
        LEFT JOIN question_tags qt ON q.question_id = qt.question_id
        LEFT JOIN tags t ON qt.tag_id = t.tag_id
+       LEFT JOIN students s ON q.author_id = s.student_id AND q.author_role = 'student'
+       LEFT JOIN lecturers l ON q.author_id = l.lecturer_id AND q.author_role = 'lecturer'
        WHERE q.question_id = $1 AND q.is_hidden = FALSE
-       GROUP BY q.question_id`,
+       GROUP BY q.question_id, s.nickname, l.nickname`,
       [id]
     )
 

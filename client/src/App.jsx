@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FeedPage from './pages/FeedPage';
+import QuestionDetailPage from './pages/QuestionDetailPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -25,6 +26,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <FeedPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/questions/:id" 
+            element={
+              <ProtectedRoute>
+                <QuestionDetailPage />
               </ProtectedRoute>
             } 
           />

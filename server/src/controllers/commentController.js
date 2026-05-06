@@ -46,7 +46,13 @@ export const getCommentsByParent = async (req, res) => {
 
   try {
     const comments = await pool.query(
-      `SELECT * FROM comments WHERE parent_type = $1 AND parent_id = $2 AND is_hidden = FALSE ORDER BY created_at ASC`,
+      `SELECT c.*, 
+        COALESCE(s.nickname, l.nickname) as author_nickname
+       FROM comments c
+       LEFT JOIN students s ON c.author_id = s.student_id AND c.author_role = 'student'
+       LEFT JOIN lecturers l ON c.author_id = l.lecturer_id AND c.author_role = 'lecturer'
+       WHERE c.parent_type = $1 AND c.parent_id = $2 AND c.is_hidden = FALSE 
+       ORDER BY c.created_at ASC`,
       [type, id]
     )
 
