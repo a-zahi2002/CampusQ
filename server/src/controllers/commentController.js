@@ -1,127 +1,172 @@
 import pool from '../config/db.js'
 
-// Post a comment
+// ─────────────────────────────────────────────────────────────
+// POST /api/comments
+// Auth required.
+// Only lecturers can comment on answers.
+// Both students and lecturers can comment on questions.
+// ─────────────────────────────────────────────────────────────
 export const createComment = async (req, res) => {
-  const { parent_type, parent_id, content } = req.body
-  const { id, role } = req.user
+    const { question_id, answer_id, body } = req.body
+    const { id: userId, role } = req.user
 
-  if (!['question', 'answer'].includes(parent_type)) {
-    return res.status(400).json({ message: 'Invalid parent type. Must be question or answer.' })
-  }
-
-  try {
-    // Check if parent exists
-    const table = parent_type === 'question' ? 'questions' : 'answers'
-    const idField = parent_type === 'question' ? 'question_id' : 'answer_id'
-    
-    const parentResult = await pool.query(`SELECT * FROM ${table} WHERE ${idField} = $1`, [parent_id])
-    if (parentResult.rows.length === 0) {
-      return res.status(404).json({ message: `${parent_type.charAt(0).toUpperCase() + parent_type.slice(1)} not found.` })
+    if (!body) {
+        return res.status(400).json({ message: 'body is required.' })
     }
 
-    const newComment = await pool.query(
-      `INSERT INTO comments (parent_type, parent_id, author_id, author_role, content) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING *`,
-      [parent_type, parent_id, id, role, content]
-    )
+    // Exactly one parent must be provided
+    if (!question_id && !answer_id) {
+        return res.status(400).json({ message: 'Either question_id or answer_id must be provided.' })
+    }
+    if (question_id && answer_id) {
+        return res.status(400).json({ message: 'Provide only one of question_id or answer_id, not both.' })
+    }
 
-    res.status(201).json({
-      message: 'Comment posted successfully.',
-      comment: newComment.rows[0]
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
+    // Lecturers-only restriction for answer comments
+    if (answer_id && role === 'student') {
+        return res.status(403).json({ message: 'Only lecturers can comment on answers.' })
+    }
+
+    try {
+        // Verify parent exists
+        if (question_id) {
+            const qResult = await pool.query('SELECT id FROM questions WHERE id = $1', [question_id])
+            if (qResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Question not found.' })
+            }
+        } else {
+            const aResult = await pool.query('SELECT id FROM answers WHERE id = $1', [answer_id])
+            if (aResult.rows.length === 0) {
+                return res.status(404).json({ message: 'Answer not found.' })
+            }
+        }
+
+        const result = await pool.query(
+            `INSERT INTO comments (user_id, question_id, answer_id, body)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, user_id, question_id, answer_id, body, created_at, updated_at`,
+            [userId, question_id ?? null, answer_id ?? null, body]
+        )
+
+        return res.status(201).json({ message: 'Comment posted successfully.', comment: result.rows[0] })
+
+    } catch (err) {
+        console.error('createComment error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
 }
 
-// Get comments for a parent (question or answer)
-export const getCommentsByParent = async (req, res) => {
-  const { type, id } = req.params
+// ─────────────────────────────────────────────────────────────
+// GET /api/comments/question/:questionId
+// Public. Returns all comments on a question, ordered by created_at ASC.
+// ─────────────────────────────────────────────────────────────
+export const getCommentsByQuestion = async (req, res) => {
+    const { questionId } = req.params
 
-  if (!['question', 'answer'].includes(type)) {
-    return res.status(400).json({ message: 'Invalid parent type.' })
-  }
+    try {
+        const result = await pool.query(
+            `SELECT c.id, c.body, c.created_at, c.updated_at,
+                    u.nickname AS author_nickname,
+                    u.role     AS author_role
+             FROM comments c
+             JOIN users u ON u.id = c.user_id
+             WHERE c.question_id = $1
+             ORDER BY c.created_at ASC`,
+            [questionId]
+        )
+        return res.status(200).json({ comments: result.rows })
 
-  try {
-    const comments = await pool.query(
-      `SELECT c.*, 
-        COALESCE(s.nickname, l.nickname) as author_nickname
-       FROM comments c
-       LEFT JOIN students s ON c.author_id = s.student_id AND c.author_role = 'student'
-       LEFT JOIN lecturers l ON c.author_id = l.lecturer_id AND c.author_role = 'lecturer'
-       WHERE c.parent_type = $1 AND c.parent_id = $2 AND c.is_hidden = FALSE 
-       ORDER BY c.created_at ASC`,
-      [type, id]
-    )
-
-    res.status(200).json({ comments: comments.rows })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
+    } catch (err) {
+        console.error('getCommentsByQuestion error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
 }
 
-// Update a comment
+// ─────────────────────────────────────────────────────────────
+// GET /api/comments/answer/:answerId
+// Public. Returns all comments on an answer, ordered by created_at ASC.
+// ─────────────────────────────────────────────────────────────
+export const getCommentsByAnswer = async (req, res) => {
+    const { answerId } = req.params
+
+    try {
+        const result = await pool.query(
+            `SELECT c.id, c.body, c.created_at, c.updated_at,
+                    u.nickname AS author_nickname,
+                    u.role     AS author_role
+             FROM comments c
+             JOIN users u ON u.id = c.user_id
+             WHERE c.answer_id = $1
+             ORDER BY c.created_at ASC`,
+            [answerId]
+        )
+        return res.status(200).json({ comments: result.rows })
+
+    } catch (err) {
+        console.error('getCommentsByAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/comments/:id
+// Auth required, owner only.
+// ─────────────────────────────────────────────────────────────
 export const updateComment = async (req, res) => {
-  const { id } = req.params
-  const { content } = req.body
-  const { id: userId, role: userRole } = req.user
+    const { id } = req.params
+    const { body } = req.body
+    const { id: userId } = req.user
 
-  try {
-    // Check if comment exists
-    const commentResult = await pool.query('SELECT * FROM comments WHERE comment_id = $1', [id])
-    if (commentResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Comment not found.' })
+    if (!body) {
+        return res.status(400).json({ message: 'body is required.' })
     }
 
-    const comment = commentResult.rows[0]
+    try {
+        const cResult = await pool.query('SELECT * FROM comments WHERE id = $1', [id])
+        if (cResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Comment not found.' })
+        }
 
-    // Check ownership or admin role
-    if (comment.author_id !== userId && userRole !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized to edit this comment.' })
+        if (cResult.rows[0].user_id !== userId) {
+            return res.status(403).json({ message: 'You can only edit your own comments.' })
+        }
+
+        const updated = await pool.query(
+            'UPDATE comments SET body = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+            [body, id]
+        )
+
+        return res.status(200).json({ message: 'Comment updated successfully.', comment: updated.rows[0] })
+
+    } catch (err) {
+        console.error('updateComment error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
-
-    const updatedComment = await pool.query(
-      `UPDATE comments SET content = $1 WHERE comment_id = $2 RETURNING *`,
-      [content, id]
-    )
-
-    res.status(200).json({
-      message: 'Comment updated successfully.',
-      comment: updatedComment.rows[0]
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
 }
 
-// Delete a comment
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/comments/:id
+// Auth required, owner or admin.
+// ─────────────────────────────────────────────────────────────
 export const deleteComment = async (req, res) => {
-  const { id } = req.params
-  const { id: userId, role: userRole } = req.user
+    const { id } = req.params
+    const { id: userId, role } = req.user
 
-  try {
-    // Check if comment exists
-    const commentResult = await pool.query('SELECT * FROM comments WHERE comment_id = $1', [id])
-    if (commentResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Comment not found.' })
+    try {
+        const cResult = await pool.query('SELECT * FROM comments WHERE id = $1', [id])
+        if (cResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Comment not found.' })
+        }
+
+        if (cResult.rows[0].user_id !== userId && role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorised to delete this comment.' })
+        }
+
+        await pool.query('DELETE FROM comments WHERE id = $1', [id])
+        return res.status(200).json({ message: 'Comment deleted successfully.' })
+
+    } catch (err) {
+        console.error('deleteComment error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
-
-    const comment = commentResult.rows[0]
-
-    // Check ownership or admin role
-    if (comment.author_id !== userId && userRole !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized to delete this comment.' })
-    }
-
-    await pool.query('DELETE FROM comments WHERE comment_id = $1', [id])
-
-    res.status(200).json({ message: 'Comment deleted successfully.' })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
 }

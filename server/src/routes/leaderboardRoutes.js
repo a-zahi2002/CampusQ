@@ -3,7 +3,10 @@ import { getAllTimeLeaderboard, getMonthlyLeaderboard } from '../controllers/lea
 
 const router = express.Router()
 
-router.get('/all-time', getAllTimeLeaderboard)
+// GET /api/leaderboard/alltime
+router.get('/alltime', getAllTimeLeaderboard)
+
+// GET /api/leaderboard/monthly
 router.get('/monthly', getMonthlyLeaderboard)
 
 export default router

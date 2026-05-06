@@ -1,244 +1,188 @@
 import pool from '../config/db.js'
 
-// Post an answer
+// ─────────────────────────────────────────────────────────────
+// POST /api/answers
+// Auth required (student or lecturer)
+// ─────────────────────────────────────────────────────────────
 export const createAnswer = async (req, res) => {
-  const { question_id, content } = req.body
-  const { id, role } = req.user
+    const { question_id, body } = req.body
+    const { id: userId, role } = req.user
 
-  try {
-    // Check if question exists
-    const questionResult = await pool.query('SELECT * FROM questions WHERE question_id = $1', [question_id])
-    if (questionResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Question not found.' })
+    if (!question_id || !body) {
+        return res.status(400).json({ message: 'question_id and body are required.' })
     }
 
-    const newAnswer = await pool.query(
-      `INSERT INTO answers (question_id, author_id, author_role, content) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [question_id, id, role, content]
-    )
+    if (!['student', 'lecturer'].includes(role)) {
+        return res.status(403).json({ message: 'Only students and lecturers can post answers.' })
+    }
 
-    res.status(201).json({
-      message: 'Answer posted successfully.',
-      answer: newAnswer.rows[0]
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
+    try {
+        // Verify question exists and is not hidden
+        const qResult = await pool.query(
+            'SELECT id, is_hidden FROM questions WHERE id = $1',
+            [question_id]
+        )
+        if (qResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Question not found.' })
+        }
+        if (qResult.rows[0].is_hidden) {
+            return res.status(403).json({ message: 'Cannot answer a hidden question.' })
+        }
+
+        const result = await pool.query(
+            `INSERT INTO answers (question_id, user_id, body)
+             VALUES ($1, $2, $3)
+             RETURNING id, question_id, user_id, body, is_accepted, is_hidden, created_at, updated_at`,
+            [question_id, userId, body]
+        )
+
+        return res.status(201).json({ message: 'Answer posted successfully.', answer: result.rows[0] })
+
+    } catch (err) {
+        console.error('createAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
 }
 
-// Get all answers for a question
+// ─────────────────────────────────────────────────────────────
+// GET /api/answers/question/:questionId
+// Public. Sorted: accepted first, then avg stars desc, then created_at asc.
+// ─────────────────────────────────────────────────────────────
 export const getAnswersByQuestionId = async (req, res) => {
-  const { questionId } = req.params
+    const { questionId } = req.params
 
-  try {
-    const answers = await pool.query(
-      `SELECT a.*, 
-        COALESCE(AVG(r.rating), 0) as avg_rating,
-        COALESCE(s.nickname, l.nickname) as author_nickname
-       FROM answers a
-       LEFT JOIN answer_ratings r ON a.answer_id = r.answer_id
-       LEFT JOIN students s ON a.author_id = s.student_id AND a.author_role = 'student'
-       LEFT JOIN lecturers l ON a.author_id = l.lecturer_id AND a.author_role = 'lecturer'
-       WHERE a.question_id = $1 AND a.is_hidden = FALSE
-       GROUP BY a.answer_id, s.nickname, l.nickname
-       ORDER BY a.is_accepted DESC, avg_rating DESC, a.created_at ASC`,
-      [questionId]
-    )
+    try {
+        const result = await pool.query(
+            `SELECT
+                a.id, a.question_id, a.body, a.is_accepted, a.is_hidden, a.created_at, a.updated_at,
+                u.nickname    AS author_nickname,
+                u.role        AS author_role,
+                COALESCE(AVG(r.stars), 0)  AS avg_stars,
+                COUNT(r.id)                AS rating_count
+             FROM answers a
+             JOIN users u ON u.id = a.user_id
+             LEFT JOIN ratings r ON r.answer_id = a.id
+             WHERE a.question_id = $1 AND a.is_hidden = FALSE
+             GROUP BY a.id, u.nickname, u.role
+             ORDER BY a.is_accepted DESC, avg_stars DESC, a.created_at ASC`,
+            [questionId]
+        )
 
-    res.status(200).json({ answers: answers.rows })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
+        return res.status(200).json({ answers: result.rows })
+
+    } catch (err) {
+        console.error('getAnswersByQuestionId error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
 }
 
-// Update an answer
+// ─────────────────────────────────────────────────────────────
+// PUT /api/answers/:id
+// Auth required, owner only.
+// ─────────────────────────────────────────────────────────────
 export const updateAnswer = async (req, res) => {
-  const { id } = req.params
-  const { content } = req.body
-  const { id: userId, role: userRole } = req.user
+    const { id } = req.params
+    const { body } = req.body
+    const { id: userId } = req.user
 
-  try {
-    // Check if answer exists
-    const answerResult = await pool.query('SELECT * FROM answers WHERE answer_id = $1', [id])
-    if (answerResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Answer not found.' })
+    if (!body) {
+        return res.status(400).json({ message: 'body is required.' })
     }
 
-    const answer = answerResult.rows[0]
+    try {
+        const aResult = await pool.query('SELECT * FROM answers WHERE id = $1', [id])
+        if (aResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Answer not found.' })
+        }
 
-    // Check ownership or admin role
-    if (answer.author_id !== userId && userRole !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized to edit this answer.' })
+        if (aResult.rows[0].user_id !== userId) {
+            return res.status(403).json({ message: 'You can only edit your own answers.' })
+        }
+
+        const updated = await pool.query(
+            'UPDATE answers SET body = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+            [body, id]
+        )
+
+        return res.status(200).json({ message: 'Answer updated successfully.', answer: updated.rows[0] })
+
+    } catch (err) {
+        console.error('updateAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
-
-    const updatedAnswer = await pool.query(
-      `UPDATE answers SET content = $1 WHERE answer_id = $2 RETURNING *`,
-      [content, id]
-    )
-
-    res.status(200).json({
-      message: 'Answer updated successfully.',
-      answer: updatedAnswer.rows[0]
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
 }
 
-// Delete an answer
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/answers/:id
+// Auth required, owner or admin.
+// ─────────────────────────────────────────────────────────────
 export const deleteAnswer = async (req, res) => {
-  const { id } = req.params
-  const { id: userId, role: userRole } = req.user
+    const { id } = req.params
+    const { id: userId, role } = req.user
 
-  try {
-    // Check if answer exists
-    const answerResult = await pool.query('SELECT * FROM answers WHERE answer_id = $1', [id])
-    if (answerResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Answer not found.' })
+    try {
+        const aResult = await pool.query('SELECT * FROM answers WHERE id = $1', [id])
+        if (aResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Answer not found.' })
+        }
+
+        if (aResult.rows[0].user_id !== userId && role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorised to delete this answer.' })
+        }
+
+        await pool.query('DELETE FROM answers WHERE id = $1', [id])
+        return res.status(200).json({ message: 'Answer deleted successfully.' })
+
+    } catch (err) {
+        console.error('deleteAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
-
-    const answer = answerResult.rows[0]
-
-    // Check ownership or admin role
-    if (answer.author_id !== userId && userRole !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized to delete this answer.' })
-    }
-
-    await pool.query('DELETE FROM answers WHERE answer_id = $1', [id])
-
-    res.status(200).json({ message: 'Answer deleted successfully.' })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
 }
 
-// Mark an answer as accepted
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/answers/:id/accept
+// Auth required, question owner only.
+// Marks this answer accepted; un-accepts any previous one.
+// ─────────────────────────────────────────────────────────────
 export const acceptAnswer = async (req, res) => {
-  const { id } = req.params
-  const { id: userId } = req.user
+    const { id } = req.params
+    const { id: userId } = req.user
 
-  try {
-    // Get answer and question info
-    const result = await pool.query(
-      `SELECT a.*, q.author_id as question_author_id 
-       FROM answers a 
-       JOIN questions q ON a.question_id = q.question_id 
-       WHERE a.answer_id = $1`,
-      [id]
-    )
+    try {
+        const aResult = await pool.query(
+            `SELECT a.*, q.user_id AS question_owner_id
+             FROM answers a
+             JOIN questions q ON q.id = a.question_id
+             WHERE a.id = $1`,
+            [id]
+        )
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Answer not found.' })
+        if (aResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Answer not found.' })
+        }
+
+        const answer = aResult.rows[0]
+
+        if (answer.question_owner_id !== userId) {
+            return res.status(403).json({ message: 'Only the question owner can accept an answer.' })
+        }
+
+        // Un-accept all answers on this question first
+        await pool.query(
+            'UPDATE answers SET is_accepted = FALSE, updated_at = NOW() WHERE question_id = $1',
+            [answer.question_id]
+        )
+
+        // Accept this answer
+        const updated = await pool.query(
+            'UPDATE answers SET is_accepted = TRUE, updated_at = NOW() WHERE id = $1 RETURNING *',
+            [id]
+        )
+
+        return res.status(200).json({ message: 'Answer marked as accepted.', answer: updated.rows[0] })
+
+    } catch (err) {
+        console.error('acceptAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
-
-    const answer = result.rows[0]
-
-    // Only the question owner can accept an answer
-    if (answer.question_author_id !== userId) {
-      return res.status(403).json({ message: 'Only the question owner can accept an answer.' })
-    }
-
-    // Reset any previously accepted answer for this question
-    await pool.query(
-      'UPDATE answers SET is_accepted = false WHERE question_id = $1',
-      [answer.question_id]
-    )
-
-    // Mark this answer as accepted
-    const updatedAnswer = await pool.query(
-      'UPDATE answers SET is_accepted = true WHERE answer_id = $1 RETURNING *',
-      [id]
-    )
-
-    res.status(200).json({
-      message: 'Answer marked as accepted.',
-      answer: updatedAnswer.rows[0]
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
-}
-
-// Rate an answer
-export const rateAnswer = async (req, res) => {
-  const { id } = req.params // answer_id
-  const { rating } = req.body
-  const { id: userId, role: userRole } = req.user
-
-  if (rating < 1 || rating > 5) {
-    return res.status(400).json({ message: 'Rating must be between 1 and 5.' })
-  }
-
-  try {
-    // 1. Get answer and question info to verify ownership
-    const result = await pool.query(
-      `SELECT a.*, q.author_id as question_author_id 
-       FROM answers a 
-       JOIN questions q ON a.question_id = q.question_id 
-       WHERE a.answer_id = $1`,
-      [id]
-    )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Answer not found.' })
-    }
-
-    const answer = result.rows[0]
-
-    // 2. Only the question owner can rate an answer
-    if (answer.question_author_id !== userId) {
-      return res.status(403).json({ message: 'Only the question owner can rate answers.' })
-    }
-
-    // 3. Check for existing rating
-    const existingRatingResult = await pool.query(
-      'SELECT * FROM answer_ratings WHERE answer_id = $1 AND rater_id = $2 AND rater_role = $3',
-      [id, userId, userRole]
-    )
-
-    let pointDifference = rating
-
-    if (existingRatingResult.rows.length > 0) {
-      // Update existing rating
-      const oldRating = existingRatingResult.rows[0].rating
-      pointDifference = rating - oldRating
-
-      await pool.query(
-        'UPDATE answer_ratings SET rating = $1 WHERE rating_id = $2',
-        [rating, existingRatingResult.rows[0].rating_id]
-      )
-    } else {
-      // Create new rating
-      await pool.query(
-        'INSERT INTO answer_ratings (answer_id, rater_id, rater_role, rating) VALUES ($1, $2, $3, $4)',
-        [id, userId, userRole, rating]
-      )
-    }
-
-    // 4. Update the answer author's cumulative points
-    const authorTable = answer.author_role === 'lecturer' ? 'lecturers' : 'students'
-    const authorIdField = answer.author_role === 'lecturer' ? 'lecturer_id' : 'student_id'
-
-    await pool.query(
-      `UPDATE ${authorTable} SET points = points + $1 WHERE ${authorIdField} = $2`,
-      [pointDifference, answer.author_id]
-    )
-
-    res.status(200).json({
-      message: existingRatingResult.rows.length > 0 ? 'Rating updated.' : 'Rating submitted.',
-      newRating: rating,
-      pointAdjustment: pointDifference
-    })
-
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Server error.' })
-  }
 }

@@ -3,7 +3,12 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const authenticateToken = (req, res, next) => {
+/**
+ * authenticate – JWT authentication middleware.
+ * Attaches req.user = { id, nickname, role, is_active } on success.
+ * Returns 401 if no token, 403 if invalid/expired.
+ */
+const authenticate = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
 
@@ -13,11 +18,17 @@ const authenticateToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        req.user = decoded
+        // Attach only the fields consumers need
+        req.user = {
+            id:        decoded.id,
+            nickname:  decoded.nickname,
+            role:      decoded.role,
+            is_active: decoded.is_active
+        }
         next()
     } catch (err) {
         return res.status(403).json({ message: 'Invalid or expired token.' })
     }
 }
 
-export default authenticateToken
+export default authenticate

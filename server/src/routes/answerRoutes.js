@@ -1,21 +1,28 @@
 import express from 'express'
-import { 
-  createAnswer, 
-  getAnswersByQuestionId, 
-  updateAnswer, 
-  deleteAnswer, 
-  acceptAnswer,
-  rateAnswer 
+import {
+    createAnswer,
+    getAnswersByQuestionId,
+    updateAnswer,
+    deleteAnswer,
+    acceptAnswer
 } from '../controllers/answerController.js'
-import authenticateToken from '../middleware/authMiddleware.js'
+import authenticate from '../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-router.post('/', authenticateToken, createAnswer)
+// POST   /api/answers                           – auth required
+router.post('/', authenticate, createAnswer)
+
+// GET    /api/answers/question/:questionId      – public
 router.get('/question/:questionId', getAnswersByQuestionId)
-router.put('/:id', authenticateToken, updateAnswer)
-router.delete('/:id', authenticateToken, deleteAnswer)
-router.patch('/:id/accept', authenticateToken, acceptAnswer)
-router.post('/:id/rate', authenticateToken, rateAnswer)
+
+// PUT    /api/answers/:id                       – auth required, owner only
+router.put('/:id', authenticate, updateAnswer)
+
+// DELETE /api/answers/:id                       – auth required, owner or admin
+router.delete('/:id', authenticate, deleteAnswer)
+
+// PATCH  /api/answers/:id/accept                – auth required, question owner only
+router.patch('/:id/accept', authenticate, acceptAnswer)
 
 export default router

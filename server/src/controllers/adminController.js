@@ -1,108 +1,150 @@
 import pool from '../config/db.js'
 
-// View all users with real identity info
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/users
+// Returns all users including real identity (email).
+// ─────────────────────────────────────────────────────────────
 export const getAllUsers = async (req, res) => {
     try {
-        const students = await pool.query('SELECT student_id as id, registration_number, email, nickname, created_at, is_admin, is_active, \'student\' as role FROM students')
-        const lecturers = await pool.query('SELECT lecturer_id as id, registration_number, email, nickname, created_at, is_admin, is_active, \'lecturer\' as role FROM lecturers')
-        
-        res.status(200).json({
-            users: [...students.rows, ...lecturers.rows]
-        })
+        const result = await pool.query(
+            `SELECT id, email, nickname, role, points, is_active, created_at
+             FROM users
+             ORDER BY created_at DESC`
+        )
+        return res.status(200).json({ users: result.rows })
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error.' })
+        console.error('getAllUsers error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
 }
 
-// View any user's full profile
-export const getUserProfile = async (req, res) => {
-    const { id, role } = req.params
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/admin/users/:id/deactivate
+// ─────────────────────────────────────────────────────────────
+export const deactivateUser = async (req, res) => {
+    const { id } = req.params
     try {
-        const table = role === 'lecturer' ? 'lecturers' : 'students'
-        const idField = role === 'lecturer' ? 'lecturer_id' : 'student_id'
-
-        const result = await pool.query(`SELECT * FROM ${table} WHERE ${idField} = $1`, [id])
-        
+        const result = await pool.query(
+            'UPDATE users SET is_active = FALSE WHERE id = $1 RETURNING id',
+            [id]
+        )
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'User not found.' })
         }
-
-        const user = result.rows[0]
-        delete user.password // Security
-
-        res.status(200).json({ user })
+        return res.status(200).json({ message: 'User account deactivated.' })
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error.' })
+        console.error('deactivateUser error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
 }
 
-// Deactivate or reactivate a user account
-export const toggleUserStatus = async (req, res) => {
-    const { id, role, status } = req.body // status: true for activate, false for deactivate
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/admin/users/:id/reactivate
+// ─────────────────────────────────────────────────────────────
+export const reactivateUser = async (req, res) => {
+    const { id } = req.params
     try {
-        const table = role === 'lecturer' ? 'lecturers' : 'students'
-        const idField = role === 'lecturer' ? 'lecturer_id' : 'student_id'
-
-        await pool.query(`UPDATE ${table} SET is_active = $1 WHERE ${idField} = $2`, [status, id])
-        
-        res.status(200).json({ message: `User account ${status ? 'activated' : 'deactivated'} successfully.` })
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error.' })
-    }
-}
-
-// View all reported/flagged questions and answers
-export const getAllReports = async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT r.*, 
-            CASE 
-                WHEN r.target_type = 'question' THEN q.title 
-                WHEN r.target_type = 'answer' THEN a.content 
-            END as target_preview,
-            CASE 
-                WHEN r.target_type = 'question' THEN q.is_hidden 
-                WHEN r.target_type = 'answer' THEN a.is_hidden 
-            END as is_hidden
-            FROM reports r
-            LEFT JOIN questions q ON r.target_type = 'question' AND r.target_id = q.question_id
-            LEFT JOIN answers a ON r.target_type = 'answer' AND r.target_id = a.answer_id
-            ORDER BY r.created_at DESC
-        `)
-        res.status(200).json({ reports: result.rows })
-    } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error.' })
-    }
-}
-
-// Hide or permanently delete any question, answer, or comment
-export const handleContent = async (req, res) => {
-    const { action, type, id } = req.body // action: 'hide', 'show', 'delete'; type: 'question', 'answer', 'comment'
-    try {
-        let table, idField
-        if (type === 'question') { table = 'questions'; idField = 'question_id' }
-        else if (type === 'answer') { table = 'answers'; idField = 'answer_id' }
-        else if (type === 'comment') { table = 'comments'; idField = 'comment_id' }
-        else return res.status(400).json({ message: 'Invalid content type.' })
-
-        if (action === 'hide') {
-            await pool.query(`UPDATE ${table} SET is_hidden = TRUE WHERE ${idField} = $1`, [id])
-            res.status(200).json({ message: 'Content hidden successfully.' })
-        } else if (action === 'show') {
-            await pool.query(`UPDATE ${table} SET is_hidden = FALSE WHERE ${idField} = $1`, [id])
-            res.status(200).json({ message: 'Content unhidden successfully.' })
-        } else if (action === 'delete') {
-            await pool.query(`DELETE FROM ${table} WHERE ${idField} = $1`, [id])
-            res.status(200).json({ message: 'Content permanently deleted.' })
-        } else {
-            res.status(400).json({ message: 'Invalid action.' })
+        const result = await pool.query(
+            'UPDATE users SET is_active = TRUE WHERE id = $1 RETURNING id',
+            [id]
+        )
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found.' })
         }
+        return res.status(200).json({ message: 'User account reactivated.' })
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ message: 'Server error.' })
+        console.error('reactivateUser error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/admin/questions/:id/hide
+// ─────────────────────────────────────────────────────────────
+export const hideQuestion = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query(
+            'UPDATE questions SET is_hidden = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id',
+            [id]
+        )
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Question not found.' })
+        }
+        return res.status(200).json({ message: 'Question hidden.' })
+    } catch (err) {
+        console.error('hideQuestion error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/admin/answers/:id/hide
+// ─────────────────────────────────────────────────────────────
+export const hideAnswer = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query(
+            'UPDATE answers SET is_hidden = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id',
+            [id]
+        )
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Answer not found.' })
+        }
+        return res.status(200).json({ message: 'Answer hidden.' })
+    } catch (err) {
+        console.error('hideAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/admin/questions/:id
+// ─────────────────────────────────────────────────────────────
+export const adminDeleteQuestion = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query('DELETE FROM questions WHERE id = $1 RETURNING id', [id])
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Question not found.' })
+        }
+        return res.status(200).json({ message: 'Question permanently deleted.' })
+    } catch (err) {
+        console.error('adminDeleteQuestion error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/admin/answers/:id
+// ─────────────────────────────────────────────────────────────
+export const adminDeleteAnswer = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query('DELETE FROM answers WHERE id = $1 RETURNING id', [id])
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Answer not found.' })
+        }
+        return res.status(200).json({ message: 'Answer permanently deleted.' })
+    } catch (err) {
+        console.error('adminDeleteAnswer error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/admin/comments/:id
+// ─────────────────────────────────────────────────────────────
+export const adminDeleteComment = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query('DELETE FROM comments WHERE id = $1 RETURNING id', [id])
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Comment not found.' })
+        }
+        return res.status(200).json({ message: 'Comment permanently deleted.' })
+    } catch (err) {
+        console.error('adminDeleteComment error:', err)
+        return res.status(500).json({ message: 'Server error.' })
     }
 }
