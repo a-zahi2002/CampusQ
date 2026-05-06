@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FeedPage from './pages/FeedPage';
 import QuestionDetailPage from './pages/QuestionDetailPage';
+import LeaderboardPage from './pages/LeaderboardPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -37,6 +38,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/" element={<Navigate to="/feed" />} />
         </Routes>
       </Router>
