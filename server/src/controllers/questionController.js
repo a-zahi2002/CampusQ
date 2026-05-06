@@ -61,12 +61,13 @@ export const getAllQuestions = async (req, res) => {
       FROM questions q
       LEFT JOIN question_tags qt ON q.question_id = qt.question_id
       LEFT JOIN tags t ON qt.tag_id = t.tag_id
+      WHERE q.is_hidden = FALSE
     `
     const params = []
 
     if (tag) {
       query += `
-        WHERE q.question_id IN (
+        AND q.question_id IN (
           SELECT qt2.question_id 
           FROM question_tags qt2 
           JOIN tags t2 ON qt2.tag_id = t2.tag_id 
@@ -101,7 +102,7 @@ export const getQuestionById = async (req, res) => {
        FROM questions q
        LEFT JOIN question_tags qt ON q.question_id = qt.question_id
        LEFT JOIN tags t ON qt.tag_id = t.tag_id
-       WHERE q.question_id = $1
+       WHERE q.question_id = $1 AND q.is_hidden = FALSE
        GROUP BY q.question_id`,
       [id]
     )
@@ -146,7 +147,7 @@ export const searchQuestions = async (req, res) => {
 
     if (tag) {
       query += `
-        WHERE EXISTS (
+        WHERE q.is_hidden = FALSE AND EXISTS (
           SELECT 1 FROM question_tags qt3
           JOIN tags t3 ON qt3.tag_id = t3.tag_id
           WHERE qt3.question_id = q.question_id
@@ -156,15 +157,17 @@ export const searchQuestions = async (req, res) => {
       params.push(tag)
     } else if (keyword) {
       query += `
-        WHERE LOWER(q.title) LIKE LOWER($1)
+        WHERE q.is_hidden = FALSE AND (LOWER(q.title) LIKE LOWER($1)
         OR LOWER(q.description) LIKE LOWER($1)
         OR EXISTS (
           SELECT 1 FROM question_tags qt3
           JOIN tags t3 ON qt3.tag_id = t3.tag_id
           WHERE qt3.question_id = q.question_id
           AND LOWER(t3.tag_name) LIKE LOWER($1)
-        )
+        ))
       `
+    } else {
+      query += ` WHERE q.is_hidden = FALSE `
     }
 
     query += `
@@ -217,6 +220,7 @@ export const getQuestionFeed = async (req, res) => {
       FROM questions q
       LEFT JOIN question_tags qt ON q.question_id = qt.question_id
       LEFT JOIN tags t ON qt.tag_id = t.tag_id
+      WHERE q.is_hidden = FALSE
       GROUP BY q.question_id
     `
 

@@ -35,7 +35,7 @@ export const getAnswersByQuestionId = async (req, res) => {
 
   try {
     const answers = await pool.query(
-      `SELECT * FROM answers WHERE question_id = $1 ORDER BY created_at ASC`,
+      `SELECT * FROM answers WHERE question_id = $1 AND is_hidden = FALSE ORDER BY created_at ASC`,
       [questionId]
     )
 

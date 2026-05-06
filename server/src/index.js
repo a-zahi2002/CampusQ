@@ -8,6 +8,8 @@ import answerRoutes from './routes/answerRoutes.js'
 import commentRoutes from './routes/commentRoutes.js'
 import leaderboardRoutes from './routes/leaderboardRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
+import reportRoutes from './routes/reportRoutes.js'
 
 dotenv.config()
 
@@ -34,6 +36,8 @@ app.use('/api/answers', answerRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/reports', reportRoutes)
 
 // Test route
 app.get('/', (req, res) => {

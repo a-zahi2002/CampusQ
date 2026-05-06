@@ -46,7 +46,7 @@ export const getCommentsByParent = async (req, res) => {
 
   try {
     const comments = await pool.query(
-      `SELECT * FROM comments WHERE parent_type = $1 AND parent_id = $2 ORDER BY created_at ASC`,
+      `SELECT * FROM comments WHERE parent_type = $1 AND parent_id = $2 AND is_hidden = FALSE ORDER BY created_at ASC`,
       [type, id]
     )
 
