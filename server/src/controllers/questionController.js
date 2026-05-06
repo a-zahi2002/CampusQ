@@ -50,19 +50,38 @@ export const createQuestion = async (req, res) => {
   }
 }
 
-// Get all questions
+// Get all questions (with optional tag filtering)
 export const getAllQuestions = async (req, res) => {
-  try {
-    const questions = await pool.query(
-      `SELECT q.*, 
-        ARRAY_AGG(t.tag_name) as tags
-       FROM questions q
-       LEFT JOIN question_tags qt ON q.question_id = qt.question_id
-       LEFT JOIN tags t ON qt.tag_id = t.tag_id
-       GROUP BY q.question_id
-       ORDER BY q.created_at DESC`
-    )
+  const { tag } = req.query
 
+  try {
+    let query = `
+      SELECT q.*, 
+        ARRAY_AGG(t.tag_name) as tags
+      FROM questions q
+      LEFT JOIN question_tags qt ON q.question_id = qt.question_id
+      LEFT JOIN tags t ON qt.tag_id = t.tag_id
+    `
+    const params = []
+
+    if (tag) {
+      query += `
+        WHERE q.question_id IN (
+          SELECT qt2.question_id 
+          FROM question_tags qt2 
+          JOIN tags t2 ON qt2.tag_id = t2.tag_id 
+          WHERE t2.tag_name = $1
+        )
+      `
+      params.push(tag)
+    }
+
+    query += `
+      GROUP BY q.question_id
+      ORDER BY q.created_at DESC
+    `
+
+    const questions = await pool.query(query, params)
     res.status(200).json({ questions: questions.rows })
 
   } catch (err) {
@@ -156,6 +175,60 @@ export const searchQuestions = async (req, res) => {
     const results = await pool.query(query, params)
 
     res.status(200).json({ questions: results.rows })
+
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Server error.' })
+  }
+}
+
+// Get prioritized question feed
+export const getQuestionFeed = async (req, res) => {
+  const { id: userId, role: userRole } = req.user
+
+  try {
+    // 1. Get user's preferred tags
+    const prefResult = await pool.query(
+      'SELECT tag_id FROM user_tag_preferences WHERE user_id = $1 AND user_role = $2',
+      [userId, userRole]
+    )
+    
+    const preferredTagIds = prefResult.rows.map(r => r.tag_id)
+
+    let query = `
+      SELECT q.*, 
+        ARRAY_AGG(t.tag_name) as tags`
+    
+    if (preferredTagIds.length > 0) {
+      query += `,
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM question_tags qt3 
+            WHERE qt3.question_id = q.question_id 
+            AND qt3.tag_id = ANY($1)
+          ) THEN 1 
+          ELSE 0 
+        END as is_preferred`
+    } else {
+      query += `, 0 as is_preferred`
+    }
+
+    query += `
+      FROM questions q
+      LEFT JOIN question_tags qt ON q.question_id = qt.question_id
+      LEFT JOIN tags t ON qt.tag_id = t.tag_id
+      GROUP BY q.question_id
+    `
+
+    if (preferredTagIds.length > 0) {
+      query += `ORDER BY is_preferred DESC, q.created_at DESC`
+      const results = await pool.query(query, [preferredTagIds])
+      res.status(200).json({ questions: results.rows })
+    } else {
+      query += `ORDER BY q.created_at DESC`
+      const results = await pool.query(query)
+      res.status(200).json({ questions: results.rows })
+    }
 
   } catch (err) {
     console.error(err)
