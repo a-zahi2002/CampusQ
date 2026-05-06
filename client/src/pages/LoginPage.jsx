@@ -26,7 +26,7 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(formData.email, formData.password, formData.role);
+    const result = await login(formData.email, formData.password);
     
     if (result.success) {
       navigate('/feed');
@@ -95,7 +95,7 @@ const LoginPage = () => {
                 type="text"
                 required
                 className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Email or Reg Number"
+                placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
               />

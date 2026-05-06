@@ -16,7 +16,7 @@ const AdminPanel = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (user?.is_admin) {
+    if (user?.role === 'admin') {
       fetchData();
     }
   }, [activeTab, user]);
@@ -26,7 +26,7 @@ const AdminPanel = () => {
     try {
       let endpoint = '';
       if (activeTab === 'users') endpoint = '/admin/users';
-      else if (activeTab === 'reports') endpoint = '/admin/reports';
+      else if (activeTab === 'reports') endpoint = '/reports';
       
       if (endpoint) {
         const response = await api.get(endpoint);
@@ -39,13 +39,10 @@ const AdminPanel = () => {
     }
   };
 
-  const handleToggleUserStatus = async (userId, role, currentStatus) => {
+  const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
-      await api.post('/admin/users/toggle-status', {
-        id: userId,
-        role: role,
-        status: !currentStatus
-      });
+      const action = currentStatus ? 'deactivate' : 'reactivate';
+      await api.patch(`/admin/users/${userId}/${action}`);
       fetchData();
     } catch (err) {
       alert('Failed to update user status');
@@ -56,7 +53,12 @@ const AdminPanel = () => {
     if (action === 'delete' && !window.confirm('Are you sure you want to PERMANENTLY delete this?')) return;
     
     try {
-      await api.post('/admin/content/handle', { action, type, id });
+      const method = action === 'delete' ? 'delete' : 'patch';
+      const endpoint = action === 'delete' 
+        ? `/admin/${type}s/${id}` 
+        : `/admin/${type}s/${id}/hide`;
+      
+      await api[method](endpoint);
       fetchData();
     } catch (err) {
       alert('Action failed');
@@ -64,7 +66,7 @@ const AdminPanel = () => {
   };
 
   if (authLoading) return <div className="p-20 text-center">Checking credentials...</div>;
-  if (!user?.is_admin) return <Navigate to="/feed" />;
+  if (user?.role !== 'admin') return <Navigate to="/feed" />;
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -185,7 +187,7 @@ const AdminPanel = () => {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <button 
-                          onClick={() => handleToggleUserStatus(u.id, u.role, u.is_active)}
+                          onClick={() => handleToggleUserStatus(u.id, u.is_active)}
                           className={`text-xs font-black px-4 py-2 rounded-lg transition-all ${
                             u.is_active ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white'
                           }`}

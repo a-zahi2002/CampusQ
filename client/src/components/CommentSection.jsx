@@ -31,11 +31,11 @@ const CommentSection = ({ type, id }) => {
 
     setSubmitting(true);
     try {
-      await api.post('/comments', {
-        parent_type: type,
-        parent_id: id,
-        content: newComment
-      });
+      const payload = { body: newComment };
+      if (type === 'question') payload.question_id = id;
+      else payload.answer_id = id;
+      
+      await api.post('/comments', payload);
       setNewComment('');
       fetchComments();
     } catch (err) {
@@ -59,12 +59,12 @@ const CommentSection = ({ type, id }) => {
       {isExpanded && (
         <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-4">
           {comments.map((comment) => (
-            <div key={comment.comment_id} className="text-sm">
+            <div key={comment.id} className="text-sm">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-bold text-gray-900">{comment.author_nickname}</span>
                 <span className="text-gray-400 text-xs">• {new Date(comment.created_at).toLocaleDateString()}</span>
               </div>
-              <p className="text-gray-700">{comment.content}</p>
+              <p className="text-gray-700">{comment.body}</p>
             </div>
           ))}
 

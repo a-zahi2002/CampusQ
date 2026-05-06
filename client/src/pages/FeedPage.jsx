@@ -21,16 +21,22 @@ const FeedPage = () => {
   const fetchQuestions = async (search = '', tag = '') => {
     setLoading(true);
     try {
-      let response;
-      if (search) {
-        response = await api.get(`/questions/search?keyword=${search}${tag ? `&tag=${tag}` : ''}`);
-      } else if (tag) {
-        response = await api.get(`/questions?tag=${tag}`);
-      } else if (user) {
-        response = await api.get('/questions/feed');
-      } else {
-        response = await api.get('/questions');
+      let url = '/questions';
+      const params = new URLSearchParams();
+      
+      if (search) params.append('search', search);
+      if (tag) {
+        // Tag filter in FeedPage uses name, but backend prefers ID if possible.
+        // For simplicity with current UI, we'll search by keyword or tag_id.
+        // Assuming the UI provides tag name, we should find the ID or the backend should handle it.
+        // Actually, backend spec says ?tag_id=...
+        const tagObj = tags.find(t => t.name === tag);
+        if (tagObj) params.append('tag_id', tagObj.id);
       }
+      
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const response = await api.get(url);
       setQuestions(response.data.questions);
     } catch (err) {
       console.error('Error fetching questions:', err);
@@ -41,7 +47,7 @@ const FeedPage = () => {
 
   const fetchTags = async () => {
     try {
-      const response = await api.get('/questions/tags');
+      const response = await api.get('/tags');
       setTags(response.data.tags);
     } catch (err) {
       console.error('Error fetching tags:', err);
@@ -79,15 +85,15 @@ const FeedPage = () => {
           </button>
           {tags.map((tag) => (
             <button
-              key={tag.tag_id}
-              onClick={() => handleTagClick(tag.tag_name)}
+              key={tag.id}
+              onClick={() => handleTagClick(tag.name)}
               className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-between items-center ${
-                selectedTag === tag.tag_name ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                selectedTag === tag.name ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <span className="flex items-center gap-2">
                 <Hash className="h-3 w-3" />
-                {tag.tag_name}
+                {tag.name}
               </span>
             </button>
           ))}
@@ -132,7 +138,7 @@ const FeedPage = () => {
         ) : questions.length > 0 ? (
           <div className="grid gap-6">
             {questions.map((q) => (
-              <QuestionCard key={q.question_id} question={q} />
+              <QuestionCard key={q.id} question={q} />
             ))}
           </div>
         ) : (

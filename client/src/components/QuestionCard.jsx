@@ -3,15 +3,17 @@ import { MessageSquare, Clock, User, Tag as TagIcon } from 'lucide-react';
 
 const QuestionCard = ({ question }) => {
   const { 
-    question_id, 
+    id, 
     title, 
     tags, 
     author_nickname, 
     author_role, 
     answer_count, 
     created_at,
-    is_preferred 
+    interest_score 
   } = question;
+
+  const is_preferred = interest_score > 0;
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -20,7 +22,7 @@ const QuestionCard = ({ question }) => {
 
   return (
     <Link 
-      to={`/questions/${question_id}`}
+      to={`/questions/${id}`}
       className={`block bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all border-l-4 ${
         is_preferred ? 'border-indigo-500 bg-indigo-50/30' : 'border-transparent'
       }`}

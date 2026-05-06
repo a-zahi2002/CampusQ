@@ -54,7 +54,7 @@ export const getAnswersByQuestionId = async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT
-                a.id, a.question_id, a.body, a.is_accepted, a.is_hidden, a.created_at, a.updated_at,
+                a.id, a.question_id, a.user_id, a.body, a.is_accepted, a.is_hidden, a.created_at, a.updated_at,
                 u.nickname    AS author_nickname,
                 u.role        AS author_role,
                 COALESCE(AVG(r.stars), 0)  AS avg_stars,

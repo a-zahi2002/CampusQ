@@ -143,7 +143,7 @@ export const getQuestionById = async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT
-                q.id, q.title, q.body, q.is_hidden, q.created_at, q.updated_at,
+                q.id, q.user_id, q.title, q.body, q.is_hidden, q.created_at, q.updated_at,
                 u.nickname AS author_nickname,
                 u.role     AS author_role,
                 COALESCE(

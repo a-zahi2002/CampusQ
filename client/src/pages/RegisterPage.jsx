@@ -5,7 +5,6 @@ import { User, Mail, Lock, UserCircle, GraduationCap } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    registration_number: '',
     email: '',
     nickname: '',
     password: '',
@@ -54,21 +53,6 @@ const RegisterPage = () => {
           )}
           
           <div className="rounded-md shadow-sm space-y-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <UserCircle className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                name="registration_number"
-                type="text"
-                required
-                className="appearance-none rounded-lg relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Registration Number"
-                value={formData.registration_number}
-                onChange={handleChange}
-              />
-            </div>
-
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-gray-400" />

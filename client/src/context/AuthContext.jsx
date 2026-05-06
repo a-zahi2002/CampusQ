@@ -17,9 +17,9 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password, role) => {
+  const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', { email, password, role });
+      const response = await api.post('/auth/login', { email, password });
       const { token, user: userData } = response.data;
       
       localStorage.setItem('token', token);
@@ -36,8 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const endpoint = userData.role === 'lecturer' ? '/auth/register/lecturer' : '/auth/register/student';
-      await api.post(endpoint, userData);
+      await api.post('/auth/register', userData);
       return { success: true };
     } catch (error) {
       return { 

@@ -47,7 +47,7 @@ const QuestionDetailPage = () => {
     try {
       await api.post('/answers', {
         question_id: id,
-        content: newAnswer
+        body: newAnswer
       });
       setNewAnswer('');
       fetchData(); // Refresh to show new answer
@@ -60,16 +60,16 @@ const QuestionDetailPage = () => {
 
   const handleAcceptAnswer = async (answerId) => {
     try {
-      await api.post(`/answers/${answerId}/accept`);
+      await api.patch(`/answers/${answerId}/accept`);
       fetchData();
     } catch (err) {
       console.error('Error accepting answer:', err);
     }
   };
 
-  const handleRateAnswer = async (answerId, rating) => {
+  const handleRateAnswer = async (answerId, stars) => {
     try {
-      await api.post(`/answers/${answerId}/rate`, { rating });
+      await api.post('/ratings', { answer_id: answerId, stars });
       fetchData();
     } catch (err) {
       console.error('Error rating answer:', err);
@@ -96,7 +96,7 @@ const QuestionDetailPage = () => {
     );
   }
 
-  const isOwner = user && user.id === question.author_id && user.role === question.author_role;
+  const isOwner = user && user.id === question.user_id;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -137,7 +137,7 @@ const QuestionDetailPage = () => {
           </div>
 
           <div className="prose max-w-none text-gray-800 text-lg leading-relaxed whitespace-pre-wrap">
-            {question.description}
+            {question.body}
           </div>
 
           <CommentSection type="question" id={id} />
@@ -151,7 +151,7 @@ const QuestionDetailPage = () => {
 
           {answers.map((answer) => (
             <div 
-              key={answer.answer_id} 
+              key={answer.id} 
               className={`bg-white rounded-3xl shadow-sm p-8 border-2 transition-all ${
                 answer.is_accepted ? 'border-green-500 bg-green-50/20' : 'border-transparent'
               }`}
@@ -192,7 +192,7 @@ const QuestionDetailPage = () => {
               </div>
 
               <div className="text-gray-800 text-lg leading-relaxed mb-6 whitespace-pre-wrap">
-                {answer.content}
+                {answer.body}
               </div>
 
               <div className="flex items-center justify-between border-t pt-6">
@@ -201,7 +201,7 @@ const QuestionDetailPage = () => {
                     <div className="flex items-center gap-4">
                       {!answer.is_accepted && (
                         <button 
-                          onClick={() => handleAcceptAnswer(answer.answer_id)}
+                          onClick={() => handleAcceptAnswer(answer.id)}
                           className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700 transition-colors"
                         >
                           Accept Answer
@@ -213,7 +213,7 @@ const QuestionDetailPage = () => {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
-                            onClick={() => handleRateAnswer(answer.answer_id, star)}
+                            onClick={() => handleRateAnswer(answer.id, star)}
                             className="hover:scale-125 transition-transform"
                           >
                             <Star 
@@ -229,7 +229,7 @@ const QuestionDetailPage = () => {
                 </div>
               </div>
 
-              <CommentSection type="answer" id={answer.answer_id} />
+              <CommentSection type="answer" id={answer.id} />
             </div>
           ))}
         </div>

@@ -15,7 +15,7 @@ const LeaderboardPage = () => {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const endpoint = activeTab === 'all-time' ? '/leaderboard/all-time' : '/leaderboard/monthly';
+      const endpoint = activeTab === 'all-time' ? '/leaderboard/alltime' : '/leaderboard/monthly';
       const response = await api.get(endpoint);
       setLeaderboard(response.data.leaderboard);
     } catch (err) {
