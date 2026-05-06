@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import FeedPage from './pages/FeedPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -23,10 +24,7 @@ function App() {
             path="/feed" 
             element={
               <ProtectedRoute>
-                <div className="p-8">
-                  <h1 className="text-3xl font-bold">Question Feed</h1>
-                  <p>Welcome to the feed! (Implementation in progress)</p>
-                </div>
+                <FeedPage />
               </ProtectedRoute>
             } 
           />

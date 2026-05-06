@@ -57,10 +57,15 @@ export const getAllQuestions = async (req, res) => {
   try {
     let query = `
       SELECT q.*, 
-        ARRAY_AGG(t.tag_name) as tags
+        COALESCE(ARRAY_AGG(DISTINCT t.tag_name) FILTER (WHERE t.tag_name IS NOT NULL), '{}') as tags,
+        COUNT(DISTINCT a.answer_id) as answer_count,
+        COALESCE(s.nickname, l.nickname) as author_nickname
       FROM questions q
       LEFT JOIN question_tags qt ON q.question_id = qt.question_id
       LEFT JOIN tags t ON qt.tag_id = t.tag_id
+      LEFT JOIN answers a ON q.question_id = a.question_id AND a.is_hidden = FALSE
+      LEFT JOIN students s ON q.author_id = s.student_id AND q.author_role = 'student'
+      LEFT JOIN lecturers l ON q.author_id = l.lecturer_id AND q.author_role = 'lecturer'
       WHERE q.is_hidden = FALSE
     `
     const params = []
@@ -78,7 +83,7 @@ export const getAllQuestions = async (req, res) => {
     }
 
     query += `
-      GROUP BY q.question_id
+      GROUP BY q.question_id, s.nickname, l.nickname
       ORDER BY q.created_at DESC
     `
 
@@ -126,7 +131,9 @@ export const searchQuestions = async (req, res) => {
   try {
     let query = `
       SELECT q.*, 
-        ARRAY_AGG(t.tag_name) as tags,
+        COALESCE(ARRAY_AGG(DISTINCT t.tag_name) FILTER (WHERE t.tag_name IS NOT NULL), '{}') as tags,
+        COUNT(DISTINCT a.answer_id) as answer_count,
+        COALESCE(s.nickname, l.nickname) as author_nickname,
         CASE 
           WHEN EXISTS (
             SELECT 1 FROM question_tags qt2
@@ -141,6 +148,9 @@ export const searchQuestions = async (req, res) => {
       FROM questions q
       LEFT JOIN question_tags qt ON q.question_id = qt.question_id
       LEFT JOIN tags t ON qt.tag_id = t.tag_id
+      LEFT JOIN answers a ON q.question_id = a.question_id AND a.is_hidden = FALSE
+      LEFT JOIN students s ON q.author_id = s.student_id AND q.author_role = 'student'
+      LEFT JOIN lecturers l ON q.author_id = l.lecturer_id AND q.author_role = 'lecturer'
     `
 
     const params = [`%${keyword || tag || ''}%`]
@@ -171,7 +181,7 @@ export const searchQuestions = async (req, res) => {
     }
 
     query += `
-      GROUP BY q.question_id
+      GROUP BY q.question_id, s.nickname, l.nickname
       ORDER BY relevance ASC, q.created_at DESC
     `
 
@@ -234,6 +244,17 @@ export const getQuestionFeed = async (req, res) => {
       res.status(200).json({ questions: results.rows })
     }
 
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Server error.' })
+  }
+}
+
+// Get all unique tags
+export const getTags = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM tags ORDER BY tag_name ASC')
+    res.status(200).json({ tags: result.rows })
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: 'Server error.' })
