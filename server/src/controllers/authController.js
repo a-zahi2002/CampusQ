@@ -83,7 +83,7 @@ export const login = async (req, res) => {
         const idField = role === 'lecturer' ? 'lecturer_id' : 'student_id'
 
         const result = await pool.query(
-            `SELECT * FROM ${table} WHERE email = $1`,
+            `SELECT * FROM ${table} WHERE email = $1 OR registration_number = $1`,
             [email]
         )
 
