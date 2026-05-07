@@ -7,6 +7,7 @@ import {
   Trash2, EyeOff, Eye, CheckCircle, 
   XCircle, Search, Loader2, ArrowRight, LogOut
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 
 const AdminPanel = () => {
@@ -67,220 +68,269 @@ const AdminPanel = () => {
     }
   };
 
-  if (authLoading) return <div className="p-20 text-center">Checking credentials...</div>;
+  if (authLoading) return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f8f9fa] dark:bg-gray-950">
+      <div className="h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin mb-6" />
+      <p className="text-gray-500 dark:text-gray-400 font-bold tracking-widest uppercase text-xs">Authenticating...</p>
+    </div>
+  );
   if (user?.role !== 'admin') return <Navigate to="/feed" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors duration-500">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-950 flex flex-col transition-colors duration-500">
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
-      {/* Admin Sidebar */}
-      <aside className="w-64 bg-slate-900 dark:bg-black text-white sticky top-0 h-screen p-6 border-r dark:border-gray-800">
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <ShieldAlert className="h-8 w-8 text-red-500" />
-          <h1 className="text-xl font-black tracking-tight">Admin Console</h1>
-        </div>
-
-        <nav className="space-y-2">
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'users' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
-            }`}
-          >
-            <Users className="h-5 w-5" />
-            User Management
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'reports' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
-            }`}
-          >
-            <Flag className="h-5 w-5" />
-            Content Reports
-          </button>
-          <button
-            onClick={() => setActiveTab('content')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'content' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
-            }`}
-          >
-            <FileText className="h-5 w-5" />
-            Global Content
-          </button>
-        </nav>
-
-        <div className="absolute bottom-10 left-6 right-6 space-y-4">
-          <div className="bg-slate-800 dark:bg-gray-900 p-4 rounded-2xl">
-            <p className="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">Logged in as</p>
-            <p className="font-bold text-sm truncate">{user.nickname}</p>
-            <p className="text-[10px] text-indigo-400 dark:text-orange-500 font-black mt-1">SUPER ADMIN</p>
+        {/* Admin Sidebar */}
+        <aside className="w-72 bg-gray-900 dark:bg-black text-white sticky top-0 h-screen p-8 flex flex-col border-r border-gray-800 dark:border-white/5 shadow-2xl z-10">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20">
+              <ShieldAlert className="h-8 w-8 text-red-500" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight leading-none">Console</h1>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Admin Control</span>
+            </div>
           </div>
-          
-          <button
-            onClick={() => {
-              logout();
-              navigate('/login');
-            }}
-            className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-500 py-3 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </div>
-      </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-10 overflow-y-auto">
-        <header className="flex justify-between items-center mb-10">
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 dark:text-white capitalize">
-              {activeTab} Management
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">Control panel for platform health and safety.</p>
-          </div>
-          
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-orange-500" />
-            <input 
-              type="text" 
-              placeholder={`Search ${activeTab}...`}
-              className="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-orange-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm transition-all placeholder-gray-400"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </header>
+          <nav className="space-y-3 flex-1">
+            {[
+              { id: 'users', label: 'User Management', icon: Users },
+              { id: 'reports', label: 'Content Reports', icon: Flag },
+              { id: 'content', label: 'Global Content', icon: FileText }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black transition-all ${
+                  activeTab === tab.id 
+                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20 scale-[1.02]' 
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white hover:scale-[1.01]'
+                }`}
+              >
+                <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-white' : 'text-gray-500'}`} />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin mb-4" />
-            <p className="text-gray-500 font-medium">Synchronizing system data...</p>
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-            {activeTab === 'users' && (
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
-                  <tr>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Nickname / Identity</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Role</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Status</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                  {data.filter(u => u.nickname.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map((u) => (
-                    <tr key={`${u.role}-${u.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-8 py-5">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900 dark:text-white">{u.nickname}</span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">{u.email}</span>
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{u.registration_number}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <span className={`text-[10px] uppercase font-black px-1.5 py-0.5 rounded ${
-                          u.role === 'lecturer' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                        }`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-1.5">
-                          {u.is_active ? (
-                            <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
-                              <CheckCircle className="h-3 w-3" /> ACTIVE
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-red-600 text-xs font-bold">
-                              <XCircle className="h-3 w-3" /> DEACTIVATED
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-right">
-                        <button 
-                          onClick={() => handleToggleUserStatus(u.id, u.is_active)}
-                          className={`text-xs font-black px-4 py-2 rounded-lg transition-all ${
-                            u.is_active ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white'
-                          }`}
-                        >
-                          {u.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {activeTab === 'reports' && (
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
-                  <tr>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Target</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Reason</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Status</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                  {data.map((r) => (
-                    <tr key={r.report_id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-8 py-5">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] uppercase font-black text-indigo-500 dark:text-orange-500">{r.target_type}</span>
-                          <span className="font-bold text-gray-900 dark:text-white line-clamp-1 max-w-xs">{r.target_preview || 'Content Deleted'}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">{r.reason}</td>
-                      <td className="px-8 py-5">
-                        {r.is_hidden ? (
-                          <span className="text-[10px] font-black bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded">HIDDEN</span>
-                        ) : (
-                          <span className="text-[10px] font-black bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">VISIBLE</span>
-                        )}
-                      </td>
-                      <td className="px-8 py-5 text-right space-x-2">
-                        <button 
-                          onClick={() => handleContentAction(r.is_hidden ? 'show' : 'hide', r.target_type, r.target_id)}
-                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-orange-500 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-lg transition-all"
-                          title={r.is_hidden ? 'Show Content' : 'Hide Content'}
-                        >
-                          {r.is_hidden ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                        </button>
-                        <button 
-                          onClick={() => handleContentAction('delete', r.target_type, r.target_id)}
-                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg transition-all"
-                          title="Delete Content"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {activeTab === 'content' && (
-              <div className="p-20 text-center">
-                <FileText className="h-16 w-16 text-gray-200 dark:text-gray-800 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Global Content Search</h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">Coming soon: A powerful interface to browse and moderate all questions and answers across the platform.</p>
-                <button 
-                  onClick={() => setActiveTab('reports')}
-                  className="inline-flex items-center gap-2 text-indigo-600 dark:text-orange-500 font-bold hover:underline"
-                >
-                  Manage Reported Content First <ArrowRight className="h-4 w-4" />
-                </button>
+          <div className="mt-auto space-y-4 pt-8 border-t border-gray-800 dark:border-white/5">
+            <div className="bg-gray-800/50 p-5 rounded-3xl border border-gray-700/50">
+              <p className="text-[10px] text-gray-500 font-black mb-1 uppercase tracking-widest">Authenticated User</p>
+              <p className="font-bold text-lg truncate text-white">{user.nickname}</p>
+              <div className="inline-flex items-center gap-1.5 mt-2 bg-orange-500/10 text-orange-500 px-2 py-1 rounded border border-orange-500/20">
+                <ShieldAlert className="h-3 w-3" />
+                <span className="text-[10px] font-black tracking-widest uppercase">SUPER ADMIN</span>
               </div>
-            )}
+            </div>
+            
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              className="w-full flex items-center justify-center gap-3 bg-red-500/10 text-red-500 py-4 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all border border-red-500/20 group"
+            >
+              <LogOut className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+              Secure Logout
+            </button>
           </div>
-        )}
-      </main>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 p-12 overflow-y-auto relative">
+          <header className="flex justify-between items-end mb-12">
+            <div>
+              <motion.h2 
+                key={activeTab}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl font-black text-gray-900 dark:text-white capitalize tracking-tight mb-2"
+              >
+                {activeTab} Management
+              </motion.h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">Control panel for platform health and safety.</p>
+            </div>
+            
+            <div className="relative group w-80">
+              <div className="absolute inset-0 bg-orange-600/5 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-2xl" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-orange-600 dark:group-focus-within:text-orange-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder={`Search ${activeTab}...`}
+                className="w-full pl-12 pr-4 py-4 border-2 border-transparent bg-white dark:bg-white/5 rounded-2xl focus:outline-none focus:border-orange-500/50 text-gray-900 dark:text-white shadow-sm transition-all placeholder-gray-400 dark:placeholder-gray-600 font-medium relative z-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </header>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 glass-card rounded-[3rem]">
+              <Loader2 className="h-12 w-12 text-orange-500 animate-spin mb-6" />
+              <p className="text-gray-500 dark:text-gray-400 font-black tracking-widest uppercase text-sm">Synchronizing Data...</p>
+            </div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="glass-card rounded-[3rem] overflow-hidden border border-white/20 dark:border-white/5"
+            >
+              {activeTab === 'users' && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">User Identity</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Role Level</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Account Status</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                      <AnimatePresence>
+                        {data.filter(u => u.nickname.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map((u, index) => (
+                          <motion.tr 
+                            layout
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            key={`${u.role}-${u.id}`} 
+                            className="hover:bg-white/50 dark:hover:bg-white/5 transition-colors group"
+                          >
+                            <td className="px-10 py-6">
+                              <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 bg-gray-100 dark:bg-white/5 rounded-2xl flex items-center justify-center">
+                                  <Users className="h-6 w-6 text-gray-400" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="font-black text-lg text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">{u.nickname}</span>
+                                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{u.email}</span>
+                                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mt-1">{u.registration_number}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-10 py-6">
+                              <span className={`text-[10px] uppercase font-black tracking-widest px-3 py-1.5 rounded-xl ${
+                                u.role === 'lecturer' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                              }`}>
+                                {u.role}
+                              </span>
+                            </td>
+                            <td className="px-10 py-6">
+                              {u.is_active ? (
+                                <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-900/50">
+                                  <CheckCircle className="h-4 w-4" /> 
+                                  <span className="text-xs font-black tracking-widest">ACTIVE</span>
+                                </div>
+                              ) : (
+                                <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50">
+                                  <XCircle className="h-4 w-4" /> 
+                                  <span className="text-xs font-black tracking-widest">SUSPENDED</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-10 py-6 text-right">
+                              <button 
+                                onClick={() => handleToggleUserStatus(u.id, u.is_active)}
+                                className={`text-xs font-black tracking-widest px-6 py-3 rounded-xl transition-all shadow-lg active:scale-95 ${
+                                  u.is_active 
+                                    ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20' 
+                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/20'
+                                }`}
+                              >
+                                {u.is_active ? 'SUSPEND' : 'RESTORE'}
+                              </button>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === 'reports' && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                      <tr>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Target Entity</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">Violation Reason</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest">State</th>
+                        <th className="px-10 py-6 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                      <AnimatePresence>
+                        {data.map((r, index) => (
+                          <motion.tr 
+                            layout
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            key={r.report_id} 
+                            className="hover:bg-white/50 dark:hover:bg-white/5 transition-colors group"
+                          >
+                            <td className="px-10 py-6">
+                              <div className="flex flex-col">
+                                <span className="text-[10px] uppercase font-black tracking-widest text-orange-600 dark:text-orange-500 mb-1">{r.target_type}</span>
+                                <span className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2 max-w-sm">{r.target_preview || 'Content Deleted / Unavailable'}</span>
+                              </div>
+                            </td>
+                            <td className="px-10 py-6">
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-4 py-2 rounded-xl inline-block">{r.reason}</span>
+                            </td>
+                            <td className="px-10 py-6">
+                              {r.is_hidden ? (
+                                <span className="inline-flex items-center text-[10px] font-black tracking-widest bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-xl border border-yellow-200 dark:border-yellow-900/50">HIDDEN</span>
+                              ) : (
+                                <span className="inline-flex items-center text-[10px] font-black tracking-widest bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-900/50">PUBLIC</span>
+                              )}
+                            </td>
+                            <td className="px-10 py-6 text-right">
+                              <div className="flex justify-end gap-3">
+                                <button 
+                                  onClick={() => handleContentAction(r.is_hidden ? 'show' : 'hide', r.target_type, r.target_id)}
+                                  className="p-3 text-gray-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-xl transition-all shadow-sm active:scale-95"
+                                  title={r.is_hidden ? 'Restore Content' : 'Hide Content'}
+                                >
+                                  {r.is_hidden ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                                </button>
+                                <button 
+                                  onClick={() => handleContentAction('delete', r.target_type, r.target_id)}
+                                  className="p-3 text-red-500 hover:text-white hover:bg-red-600 rounded-xl transition-all shadow-sm shadow-red-500/20 active:scale-95"
+                                  title="Permanently Delete"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === 'content' && (
+                <div className="p-32 text-center">
+                  <div className="h-24 w-24 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <FileText className="h-10 w-10 text-orange-600 dark:text-orange-500" />
+                  </div>
+                  <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">Global Content Matrix</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-10 max-w-md mx-auto text-lg font-medium">An advanced interface to browse, filter, and moderate all questions and answers across the platform is currently under construction.</p>
+                  <button 
+                    onClick={() => setActiveTab('reports')}
+                    className="inline-flex items-center gap-3 text-orange-600 dark:text-orange-500 font-black tracking-widest uppercase text-sm hover:gap-4 transition-all"
+                  >
+                    Manage Reports Instead <ArrowRight className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </main>
       </div>
     </div>
   );

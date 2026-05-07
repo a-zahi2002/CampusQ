@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { MessageSquare, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CommentSection = ({ type, id }) => {
   const [comments, setComments] = useState([]);
@@ -46,49 +47,70 @@ const CommentSection = ({ type, id }) => {
   };
 
   return (
-    <div className="mt-4 border-t pt-4">
+    <div className="mt-8 border-t dark:border-white/5 pt-6">
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-indigo-600 transition-colors"
+        className="flex items-center gap-3 text-sm font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 dark:hover:text-orange-500 transition-colors group"
       >
-        <MessageSquare className="h-4 w-4" />
-        {comments.length > 0 ? `${comments.length} Comments` : 'Add a Comment'}
-        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        <div className="p-2 bg-gray-100 dark:bg-white/5 rounded-xl group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30 transition-colors">
+          <MessageSquare className="h-4 w-4" />
+        </div>
+        {comments.length > 0 ? `${comments.length} Comments` : 'Join Discussion'}
+        <div className="ml-auto p-1 border border-gray-200 dark:border-white/10 rounded-lg group-hover:border-orange-200 dark:group-hover:border-orange-500/30 transition-colors">
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
       </button>
 
-      {isExpanded && (
-        <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="text-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-gray-900">{comment.author_nickname}</span>
-                <span className="text-gray-400 text-xs">• {new Date(comment.created_at).toLocaleDateString()}</span>
-              </div>
-              <p className="text-gray-700">{comment.body}</p>
-            </div>
-          ))}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-6 pl-6 border-l-2 border-orange-100 dark:border-orange-900/30 space-y-6">
+              {comments.map((comment, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  key={comment.id} 
+                  className="text-sm bg-gray-50 dark:bg-white/5 p-4 rounded-2xl"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-black text-gray-900 dark:text-white text-base">{comment.author_nickname}</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-xs font-bold tracking-wider uppercase">• {new Date(comment.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-gray-700 dark:text-gray-300 text-base font-medium leading-relaxed">{comment.body}</p>
+                </motion.div>
+              ))}
 
-          {user ? (
-            <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
-              <input 
-                type="text"
-                placeholder="Write a comment..."
-                className="flex-1 text-sm bg-gray-50 border-none rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-              />
-              <button 
-                disabled={submitting}
-                className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
-          ) : (
-            <p className="text-xs text-gray-500 italic">Please login to comment.</p>
-          )}
-        </div>
-      )}
+              {user ? (
+                <form onSubmit={handleSubmit} className="flex gap-3 mt-6">
+                  <input 
+                    type="text"
+                    placeholder="Contribute your thoughts..."
+                    className="flex-1 text-sm bg-gray-50 dark:bg-white/5 border border-transparent dark:border-transparent rounded-xl px-5 py-3 focus:border-orange-500/50 dark:focus:border-orange-500/50 outline-none transition-all text-gray-900 dark:text-white font-medium placeholder-gray-400 dark:placeholder-gray-600"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                  <button 
+                    disabled={submitting || !newComment.trim()}
+                    className="bg-orange-600 text-white p-3 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                </form>
+              ) : (
+                <div className="bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-500 text-xs font-bold p-4 rounded-xl border border-orange-100 dark:border-orange-500/20">
+                  Please sign in to participate in the discussion.
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

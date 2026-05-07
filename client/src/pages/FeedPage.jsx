@@ -6,6 +6,8 @@ import { Search, Filter, Hash, Loader2, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 const FeedPage = () => {
   const [questions, setQuestions] = useState([]);
   const [tags, setTags] = useState([]);
@@ -27,10 +29,6 @@ const FeedPage = () => {
       
       if (search) params.append('search', search);
       if (tag) {
-        // Tag filter in FeedPage uses name, but backend prefers ID if possible.
-        // For simplicity with current UI, we'll search by keyword or tag_id.
-        // Assuming the UI provides tag name, we should find the ID or the backend should handle it.
-        // Actually, backend spec says ?tag_id=...
         const tagObj = tags.find(t => t.name === tag);
         if (tagObj) params.append('tag_id', tagObj.id);
       }
@@ -67,97 +65,151 @@ const FeedPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-950 transition-colors duration-500">
       <Navbar />
-      <div className="flex">
+      <div className="flex max-w-7xl mx-auto">
         {/* Sidebar for Tags */}
-      <aside className="w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-800 hidden lg:block sticky top-0 h-screen overflow-y-auto p-6">
-        <div className="flex items-center gap-2 mb-8 text-indigo-600 dark:text-orange-500">
-          <Filter className="h-5 w-5" />
-          <h2 className="text-lg font-bold">Filter by Tags</h2>
-        </div>
-        
-        <div className="space-y-2">
-          <button
-            onClick={() => handleTagClick('')}
-            className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedTag === '' ? 'bg-indigo-600 dark:bg-orange-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-          >
-            All Questions
-          </button>
-          {tags.map((tag) => (
+      <aside className="w-72 hidden lg:block sticky top-24 h-[calc(100vh-6rem)] p-6">
+        <div className="glass-card rounded-[2rem] h-full p-8 flex flex-col">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+              <Filter className="h-5 w-5 text-orange-600 dark:text-orange-500" />
+            </div>
+            <h2 className="text-xl font-black text-gray-900 dark:text-white">Explore</h2>
+          </div>
+          
+          <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
             <button
-              key={tag.id}
-              onClick={() => handleTagClick(tag.name)}
-              className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-between items-center ${
-                selectedTag === tag.name ? 'bg-indigo-600 dark:bg-orange-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              onClick={() => handleTagClick('')}
+              className={`w-full text-left px-5 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${
+                selectedTag === '' ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20 scale-[1.02]' : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-white/5'
               }`}
             >
-              <span className="flex items-center gap-2">
-                <Hash className="h-3 w-3" />
-                {tag.name}
-              </span>
+              All Discussions
             </button>
-          ))}
+            {tags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => handleTagClick(tag.name)}
+                className={`w-full text-left px-5 py-3 rounded-2xl text-sm font-bold transition-all duration-300 flex justify-between items-center group ${
+                  selectedTag === tag.name ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20 scale-[1.02]' : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-white/5'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Hash className={`h-4 w-4 ${selectedTag === tag.name ? 'text-white' : 'text-orange-500'}`} />
+                  {tag.name}
+                </span>
+                <ChevronRight className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${selectedTag === tag.name ? 'opacity-100' : 'opacity-0'}`} />
+              </button>
+            ))}
+          </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl mx-auto p-6 lg:p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <main className="flex-1 p-6 lg:p-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
+        >
           <div>
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white">CampusQ Feed</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Discover questions and share your knowledge.</p>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+              Community <span className="text-orange-600 dark:text-orange-500">Feed</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Join the conversation and solve academic challenges together.</p>
           </div>
           
           <Link 
             to="/ask"
-            className="flex items-center gap-2 bg-indigo-600 dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 dark:hover:bg-orange-700 transition-all shadow-lg hover:shadow-indigo-200 dark:hover:shadow-orange-900/20"
+            className="btn-primary"
           >
             <PlusCircle className="h-5 w-5" />
             Ask Question
           </Link>
-        </div>
+        </motion.div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="relative mb-8 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-500 dark:group-focus-within:text-orange-500 transition-colors" />
-          <input
-            type="text"
-            placeholder="Search for questions by title, description, or tags..."
-            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-600"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form>
+        <motion.form 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          onSubmit={handleSearch} 
+          className="relative mb-12 group"
+        >
+          <div className="absolute inset-0 bg-orange-600/5 blur-2xl rounded-3xl group-focus-within:bg-orange-600/10 transition-colors" />
+          <div className="relative glass-card rounded-[1.5rem] flex items-center p-2 border-transparent group-focus-within:border-orange-500/50 transition-all">
+            <div className="p-3">
+              <Search className="h-6 w-6 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by topic, keyword, or tag..."
+              className="w-full py-4 bg-transparent text-gray-900 dark:text-white font-medium focus:outline-none placeholder-gray-400 dark:placeholder-gray-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button type="submit" className="hidden md:block px-6 py-3 bg-gray-900 dark:bg-orange-600 text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all">
+              Search
+            </button>
+          </div>
+        </motion.form>
 
         {/* Question List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 text-indigo-500 animate-spin mb-4" />
-            <p className="text-gray-500 font-medium">Fetching the latest questions...</p>
-          </div>
-        ) : questions.length > 0 ? (
-          <div className="grid gap-6">
-            {questions.map((q) => (
-              <QuestionCard key={q.id} question={q} />
-            ))}
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative">
+              <div className="h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-8 w-8 bg-orange-500/10 rounded-full animate-pulse" />
+              </div>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-bold mt-6 tracking-wide uppercase text-xs">Syncing Knowledge...</p>
           </div>
         ) : (
-          <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800">
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No questions found matching your criteria.</p>
-            <button 
-              onClick={() => {setSearchQuery(''); setSelectedTag(''); fetchQuestions('', '');}}
-              className="mt-4 text-indigo-600 dark:text-orange-500 font-bold hover:underline"
-            >
-              Clear all filters
-            </button>
-          </div>
+          <AnimatePresence mode="popLayout">
+            {questions.length > 0 ? (
+              <motion.div 
+                layout
+                className="grid gap-6"
+              >
+                {questions.map((q, index) => (
+                  <motion.div
+                    key={q.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <QuestionCard question={q} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-24 glass-card rounded-[2.5rem] border-dashed border-2 border-gray-200 dark:border-white/10"
+              >
+                <div className="bg-gray-100 dark:bg-gray-800 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="h-10 w-10 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">No results found</h3>
+                <p className="text-gray-500 dark:text-gray-400 font-medium mb-8">Try adjusting your filters or search keywords.</p>
+                <button 
+                  onClick={() => {setSearchQuery(''); setSelectedTag(''); fetchQuestions('', '');}}
+                  className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-2xl hover:scale-105 transition-all"
+                >
+                  Reset all filters
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         )}
       </main>
       </div>
     </div>
+
   );
 };
 
