@@ -2,50 +2,8 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Trophy, Medal, Star, TrendingUp, Calendar, Globe, Loader2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-
-const LeaderboardPage = () => {
-  const [activeTab, setActiveTab] = useState('all-time');
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [activeTab]);
-
-  const fetchLeaderboard = async () => {
-    setLoading(true);
-    try {
-      const endpoint = activeTab === 'all-time' ? '/leaderboard/alltime' : '/leaderboard/monthly';
-      const response = await api.get(endpoint);
-      setLeaderboard(response.data.leaderboard);
-    } catch (err) {
-      console.error('Error fetching leaderboard:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getRankStyle = (index) => {
-    switch (index) {
-      case 0: return 'bg-yellow-100 text-yellow-700 ring-yellow-400';
-      case 1: return 'bg-gray-100 text-gray-700 ring-gray-400';
-      case 2: return 'bg-orange-100 text-orange-700 ring-orange-400';
-      default: return 'bg-white text-gray-500 ring-gray-200';
-    }
-  };
-
-  const getMedalIcon = (index) => {
-    switch (index) {
-      case 0: return <Trophy className="h-6 w-6 text-yellow-500" />;
-      case 1: return <Medal className="h-6 w-6 text-gray-400" />;
-      case 2: return <Medal className="h-6 w-6 text-orange-400" />;
-      default: return <span className="font-bold text-lg">{index + 1}</span>;
-    }
-  };
-
-  return (
 import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from '../components/Navbar';
 
 const LeaderboardPage = () => {
   const [activeTab, setActiveTab] = useState('all-time');
@@ -99,50 +57,33 @@ const LeaderboardPage = () => {
             to="/feed"
             className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-500 hover:gap-3 font-black mb-10 transition-all"
           >
-            <ArrowLeft className="h-5 w-5" />
-            Back to Feed
+            <ArrowLeft className="h-5 w-5" /> Back to Feed
           </Link>
         </motion.div>
 
-        <div className="text-center mb-16">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center justify-center p-5 bg-orange-100 dark:bg-orange-950 rounded-[2rem] mb-6 shadow-xl shadow-orange-500/10"
-          >
-            <Trophy className="h-12 w-12 text-orange-600 dark:text-orange-500" />
-          </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight"
           >
-            Campus<span className="text-orange-600 dark:text-orange-500">Q</span> Rankings
-          </motion.h1>
-          <motion.p 
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.1 }}
-             className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto font-medium text-lg"
-          >
-            Recognizing our most elite academic contributors.
-          </motion.p>
-        </div>
+            <h1 className="text-6xl font-black text-gray-900 dark:text-white tracking-tighter mb-4">
+              Hall of <span className="text-orange-600 dark:text-orange-500">Fame</span>
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-xl font-medium">Celebrating the top contributors of the CampusQ community.</p>
+          </motion.div>
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-12">
-          <div className="glass-card p-2 rounded-3xl flex gap-3">
+          <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-[1.5rem] border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
             {[
               { id: 'all-time', label: 'All Time', icon: Globe },
               { id: 'monthly', label: 'This Month', icon: Calendar }
-            ].map((tab) => (
+            ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-black transition-all ${
+                className={`flex items-center gap-2 px-8 py-3.5 rounded-[1.2rem] font-black transition-all ${
                   activeTab === tab.id 
-                    ? 'bg-orange-600 text-white shadow-xl shadow-orange-500/30 scale-[1.05]' 
-                    : 'text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500 hover:bg-white dark:hover:bg-white/5'
+                    ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' 
+                    : 'text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 <tab.icon className="h-4 w-4" />
@@ -255,4 +196,3 @@ const LeaderboardPage = () => {
 };
 
 export default LeaderboardPage;
-

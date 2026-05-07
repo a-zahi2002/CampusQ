@@ -6,6 +6,7 @@ import FeedPage from './pages/FeedPage';
 import QuestionDetailPage from './pages/QuestionDetailPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import AdminPanel from './pages/AdminPanel';
+import AskQuestionPage from './pages/AskQuestionPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -37,6 +38,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <QuestionDetailPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/ask" 
+              element={
+                <ProtectedRoute>
+                  <AskQuestionPage />
                 </ProtectedRoute>
               } 
             />

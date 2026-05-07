@@ -1,6 +1,11 @@
 import express from 'express'
 import {
     getAllUsers,
+    adminCreateUser,
+    adminUpdateUser,
+    adminDeleteUser,
+    getPlatformStats,
+    getAllContent,
     deactivateUser,
     reactivateUser,
     hideQuestion,
@@ -18,28 +23,23 @@ const router = express.Router()
 router.use(authenticate)
 router.use(isAdmin)
 
-// GET    /api/admin/users
+// User Management
 router.get('/users', getAllUsers)
-
-// PATCH  /api/admin/users/:id/deactivate
+router.post('/users', adminCreateUser)
+router.patch('/users/:id', adminUpdateUser)
+router.delete('/users/:id', adminDeleteUser)
 router.patch('/users/:id/deactivate', deactivateUser)
-
-// PATCH  /api/admin/users/:id/reactivate
 router.patch('/users/:id/reactivate', reactivateUser)
 
-// PATCH  /api/admin/questions/:id/hide
+// Platform Management
+router.get('/stats', getPlatformStats)
+router.get('/content', getAllContent)
+
+// Content Moderation
 router.patch('/questions/:id/hide', hideQuestion)
-
-// PATCH  /api/admin/answers/:id/hide
 router.patch('/answers/:id/hide', hideAnswer)
-
-// DELETE /api/admin/questions/:id
 router.delete('/questions/:id', adminDeleteQuestion)
-
-// DELETE /api/admin/answers/:id
 router.delete('/answers/:id', adminDeleteAnswer)
-
-// DELETE /api/admin/comments/:id
 router.delete('/comments/:id', adminDeleteComment)
 
 export default router

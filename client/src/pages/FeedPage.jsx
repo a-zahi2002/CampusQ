@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import QuestionCard from '../components/QuestionCard';
-import { Search, Filter, Hash, Loader2, PlusCircle } from 'lucide-react';
+import { Search, Filter, Hash, Loader2, PlusCircle, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 

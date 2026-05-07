@@ -56,6 +56,29 @@ export const deleteTag = async (req, res) => {
 }
 
 // ─────────────────────────────────────────────────────────────
+// PATCH /api/tags/:id  – admin only
+// ─────────────────────────────────────────────────────────────
+export const updateTag = async (req, res) => {
+    const { id } = req.params
+    const { name } = req.body
+
+    if (!name) return res.status(400).json({ message: 'name is required.' })
+
+    try {
+        const result = await pool.query(
+            'UPDATE tags SET name = $1 WHERE id = $2 RETURNING id, name',
+            [name.trim(), id]
+        )
+        if (result.rows.length === 0) return res.status(404).json({ message: 'Tag not found.' })
+        return res.status(200).json({ message: 'Tag updated.', tag: result.rows[0] })
+    } catch (err) {
+        if (err.code === '23505') return res.status(400).json({ message: 'A tag with that name already exists.' })
+        console.error('updateTag error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
 // PUT /api/user/interests  – auth required
 // Replaces entire interest set for the authenticated user.
 // ─────────────────────────────────────────────────────────────
