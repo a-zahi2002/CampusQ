@@ -27,7 +27,8 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(formData.email, formData.password);
+    const trimmedEmail = formData.email.trim().toLowerCase();
+    const result = await login(trimmedEmail, formData.password);
     
     if (result.success) {
       navigate('/feed');
@@ -41,6 +42,9 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-2xl">
         <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="CampusQ Logo" className="h-16 w-16 object-contain" />
+          </div>
           <h1 className="text-4xl font-black text-indigo-600 mb-2">CampusQ</h1>
           <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
           <p className="mt-2 text-sm text-gray-600">Please sign in to your account</p>

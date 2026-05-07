@@ -67,12 +67,12 @@ const FeedPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
       <Navbar />
       <div className="flex">
         {/* Sidebar for Tags */}
-      <aside className="w-64 bg-white border-r hidden lg:block sticky top-0 h-screen overflow-y-auto p-6">
-        <div className="flex items-center gap-2 mb-8 text-indigo-600">
+      <aside className="w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-800 hidden lg:block sticky top-0 h-screen overflow-y-auto p-6">
+        <div className="flex items-center gap-2 mb-8 text-indigo-600 dark:text-orange-500">
           <Filter className="h-5 w-5" />
           <h2 className="text-lg font-bold">Filter by Tags</h2>
         </div>
@@ -81,7 +81,7 @@ const FeedPage = () => {
           <button
             onClick={() => handleTagClick('')}
             className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedTag === '' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+              selectedTag === '' ? 'bg-indigo-600 dark:bg-orange-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
             }`}
           >
             All Questions
@@ -91,7 +91,7 @@ const FeedPage = () => {
               key={tag.id}
               onClick={() => handleTagClick(tag.name)}
               className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-between items-center ${
-                selectedTag === tag.name ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                selectedTag === tag.name ? 'bg-indigo-600 dark:bg-orange-600 text-white shadow-lg shadow-indigo-100 dark:shadow-none' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -107,13 +107,13 @@ const FeedPage = () => {
       <main className="flex-1 max-w-5xl mx-auto p-6 lg:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black text-gray-900">CampusQ Feed</h1>
-            <p className="text-gray-500 mt-1">Discover questions and share your knowledge.</p>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white">CampusQ Feed</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Discover questions and share your knowledge.</p>
           </div>
           
           <Link 
             to="/ask"
-            className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-200"
+            className="flex items-center gap-2 bg-indigo-600 dark:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 dark:hover:bg-orange-700 transition-all shadow-lg hover:shadow-indigo-200 dark:hover:shadow-orange-900/20"
           >
             <PlusCircle className="h-5 w-5" />
             Ask Question
@@ -122,11 +122,11 @@ const FeedPage = () => {
 
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="relative mb-8 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-500 dark:group-focus-within:text-orange-500 transition-colors" />
           <input
             type="text"
             placeholder="Search for questions by title, description, or tags..."
-            className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-orange-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-600"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -145,11 +145,11 @@ const FeedPage = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
-            <p className="text-gray-500 text-lg font-medium">No questions found matching your criteria.</p>
+          <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800">
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No questions found matching your criteria.</p>
             <button 
               onClick={() => {setSearchQuery(''); setSelectedTag(''); fetchQuestions('', '');}}
-              className="mt-4 text-indigo-600 font-bold hover:underline"
+              className="mt-4 text-indigo-600 dark:text-orange-500 font-bold hover:underline"
             >
               Clear all filters
             </button>

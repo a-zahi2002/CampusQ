@@ -10,7 +10,8 @@ dotenv.config()
 // Registers a student or lecturer. Admin cannot self-register.
 // ─────────────────────────────────────────────────────────────
 export const register = async (req, res) => {
-    const { email, password, nickname, role } = req.body
+    const email = req.body.email?.trim().toLowerCase()
+    const { password, nickname, role } = req.body
 
     // Validate required fields
     if (!email || !password || !nickname || !role) {
@@ -68,7 +69,8 @@ export const register = async (req, res) => {
 // POST /api/auth/login
 // ─────────────────────────────────────────────────────────────
 export const login = async (req, res) => {
-    const { email, password } = req.body
+    const email = req.body.email?.trim().toLowerCase()
+    const { password } = req.body
 
     if (!email || !password) {
         return res.status(400).json({ message: 'email and password are required.' })

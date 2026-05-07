@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "proxima": {
+      "command": "node",
+      "args": [
+        "C:/Program Files/Proxima/resources/app.asar.unpacked/src/mcp-server-v3.js"
+      ]
+    }
+  }
+}
+

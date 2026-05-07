@@ -71,11 +71,11 @@ const AdminPanel = () => {
   if (user?.role !== 'admin') return <Navigate to="/feed" />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col transition-colors duration-500">
       <Navbar />
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white sticky top-0 h-screen p-6">
+      <aside className="w-64 bg-slate-900 dark:bg-black text-white sticky top-0 h-screen p-6 border-r dark:border-gray-800">
         <div className="flex items-center gap-3 mb-10 px-2">
           <ShieldAlert className="h-8 w-8 text-red-500" />
           <h1 className="text-xl font-black tracking-tight">Admin Console</h1>
@@ -85,7 +85,7 @@ const AdminPanel = () => {
           <button
             onClick={() => setActiveTab('users')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'users' ? 'bg-indigo-600 shadow-lg shadow-indigo-900/50' : 'hover:bg-slate-800 text-slate-400'
+              activeTab === 'users' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
             }`}
           >
             <Users className="h-5 w-5" />
@@ -94,7 +94,7 @@ const AdminPanel = () => {
           <button
             onClick={() => setActiveTab('reports')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'reports' ? 'bg-indigo-600 shadow-lg shadow-indigo-900/50' : 'hover:bg-slate-800 text-slate-400'
+              activeTab === 'reports' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
             }`}
           >
             <Flag className="h-5 w-5" />
@@ -103,7 +103,7 @@ const AdminPanel = () => {
           <button
             onClick={() => setActiveTab('content')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-              activeTab === 'content' ? 'bg-indigo-600 shadow-lg shadow-indigo-900/50' : 'hover:bg-slate-800 text-slate-400'
+              activeTab === 'content' ? 'bg-indigo-600 dark:bg-orange-600 shadow-lg shadow-indigo-900/50 dark:shadow-none' : 'hover:bg-slate-800 dark:hover:bg-gray-900 text-slate-400'
             }`}
           >
             <FileText className="h-5 w-5" />
@@ -112,10 +112,10 @@ const AdminPanel = () => {
         </nav>
 
         <div className="absolute bottom-10 left-6 right-6 space-y-4">
-          <div className="bg-slate-800 p-4 rounded-2xl">
+          <div className="bg-slate-800 dark:bg-gray-900 p-4 rounded-2xl">
             <p className="text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">Logged in as</p>
             <p className="font-bold text-sm truncate">{user.nickname}</p>
-            <p className="text-[10px] text-indigo-400 font-black mt-1">SUPER ADMIN</p>
+            <p className="text-[10px] text-indigo-400 dark:text-orange-500 font-black mt-1">SUPER ADMIN</p>
           </div>
           
           <button
@@ -135,18 +135,18 @@ const AdminPanel = () => {
       <main className="flex-1 p-10 overflow-y-auto">
         <header className="flex justify-between items-center mb-10">
           <div>
-            <h2 className="text-3xl font-black text-gray-900 capitalize">
+            <h2 className="text-3xl font-black text-gray-900 dark:text-white capitalize">
               {activeTab} Management
             </h2>
-            <p className="text-gray-500 font-medium">Control panel for platform health and safety.</p>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Control panel for platform health and safety.</p>
           </div>
           
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-indigo-600" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 group-focus-within:text-indigo-600 dark:group-focus-within:text-orange-500" />
             <input 
               type="text" 
               placeholder={`Search ${activeTab}...`}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm transition-all"
+              className="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-orange-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm transition-all placeholder-gray-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -159,30 +159,30 @@ const AdminPanel = () => {
             <p className="text-gray-500 font-medium">Synchronizing system data...</p>
           </div>
         ) : (
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
             {activeTab === 'users' && (
               <table className="w-full text-left">
-                <thead className="bg-gray-50 border-b border-gray-100">
+                <thead className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
                   <tr>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Nickname / Identity</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Role</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Status</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase text-right">Actions</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Nickname / Identity</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Role</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Status</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {data.filter(u => u.nickname.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map((u) => (
-                    <tr key={`${u.role}-${u.id}`} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={`${u.role}-${u.id}`} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">{u.nickname}</span>
-                          <span className="text-xs text-gray-500">{u.email}</span>
-                          <span className="text-[10px] text-gray-400 font-medium">{u.registration_number}</span>
+                          <span className="font-bold text-gray-900 dark:text-white">{u.nickname}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{u.email}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{u.registration_number}</span>
                         </div>
                       </td>
                       <td className="px-8 py-5">
                         <span className={`text-[10px] uppercase font-black px-1.5 py-0.5 rounded ${
-                          u.role === 'lecturer' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                          u.role === 'lecturer' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                         }`}>
                           {u.role}
                         </span>
@@ -204,7 +204,7 @@ const AdminPanel = () => {
                         <button 
                           onClick={() => handleToggleUserStatus(u.id, u.is_active)}
                           className={`text-xs font-black px-4 py-2 rounded-lg transition-all ${
-                            u.is_active ? 'bg-red-50 text-red-600 hover:bg-red-600 hover:text-white' : 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white'
+                            u.is_active ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white'
                           }`}
                         >
                           {u.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
@@ -218,42 +218,42 @@ const AdminPanel = () => {
 
             {activeTab === 'reports' && (
               <table className="w-full text-left">
-                <thead className="bg-gray-50 border-b border-gray-100">
+                <thead className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
                   <tr>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Target</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Reason</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase">Status</th>
-                    <th className="px-8 py-4 text-xs font-black text-gray-400 uppercase text-right">Actions</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Target</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Reason</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase">Status</th>
+                    <th className="px-8 py-4 text-xs font-black text-gray-400 dark:text-gray-500 uppercase text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {data.map((r) => (
-                    <tr key={r.report_id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={r.report_id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex flex-col">
-                          <span className="text-[10px] uppercase font-black text-indigo-500">{r.target_type}</span>
-                          <span className="font-bold text-gray-900 line-clamp-1 max-w-xs">{r.target_preview || 'Content Deleted'}</span>
+                          <span className="text-[10px] uppercase font-black text-indigo-500 dark:text-orange-500">{r.target_type}</span>
+                          <span className="font-bold text-gray-900 dark:text-white line-clamp-1 max-w-xs">{r.target_preview || 'Content Deleted'}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-sm text-gray-600">{r.reason}</td>
+                      <td className="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">{r.reason}</td>
                       <td className="px-8 py-5">
                         {r.is_hidden ? (
-                          <span className="text-[10px] font-black bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">HIDDEN</span>
+                          <span className="text-[10px] font-black bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-0.5 rounded">HIDDEN</span>
                         ) : (
-                          <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded">VISIBLE</span>
+                          <span className="text-[10px] font-black bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">VISIBLE</span>
                         )}
                       </td>
                       <td className="px-8 py-5 text-right space-x-2">
                         <button 
                           onClick={() => handleContentAction(r.is_hidden ? 'show' : 'hide', r.target_type, r.target_id)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-orange-500 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-lg transition-all"
                           title={r.is_hidden ? 'Show Content' : 'Hide Content'}
                         >
                           {r.is_hidden ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                         </button>
                         <button 
                           onClick={() => handleContentAction('delete', r.target_type, r.target_id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg transition-all"
                           title="Delete Content"
                         >
                           <Trash2 className="h-5 w-5" />
@@ -267,12 +267,12 @@ const AdminPanel = () => {
 
             {activeTab === 'content' && (
               <div className="p-20 text-center">
-                <FileText className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Global Content Search</h3>
-                <p className="text-gray-500 mb-8 max-w-md mx-auto">Coming soon: A powerful interface to browse and moderate all questions and answers across the platform.</p>
+                <FileText className="h-16 w-16 text-gray-200 dark:text-gray-800 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Global Content Search</h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">Coming soon: A powerful interface to browse and moderate all questions and answers across the platform.</p>
                 <button 
                   onClick={() => setActiveTab('reports')}
-                  className="inline-flex items-center gap-2 text-indigo-600 font-bold hover:underline"
+                  className="inline-flex items-center gap-2 text-indigo-600 dark:text-orange-500 font-bold hover:underline"
                 >
                   Manage Reported Content First <ArrowRight className="h-4 w-4" />
                 </button>
