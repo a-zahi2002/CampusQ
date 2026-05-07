@@ -17,7 +17,7 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [data, setData] = useState({ users: [], reports: [], content: { questions: [], answers: [] }, tags: [] });
-  const [stats, setStats] = useState({ users: 0, questions: 0, answers: 0, pendingReports: 0 });
+  const [stats, setStats] = useState({ users: 0, questions: 0, answers: 0, pendingReports: 0, pendingApprovals: 0 });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -131,7 +131,7 @@ const AdminPanel = () => {
 
   const filteredQuestions = data.content.questions.filter(q => 
     q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    q.content.toLowerCase().includes(searchQuery.toLowerCase())
+    q.body.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -140,7 +140,7 @@ const AdminPanel = () => {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Admin Sidebar */}
-        <aside className="w-72 bg-gray-900 dark:bg-black text-white h-full p-8 flex flex-col border-r border-gray-800 dark:border-white/5 shadow-2xl z-20">
+        <aside className="w-72 bg-gray-900 dark:bg-black text-white h-full p-8 flex flex-col border-r border-gray-800 dark:border-white/5 shadow-2xl z-20 overflow-x-hidden">
           <div className="flex items-center gap-4 mb-12">
             <div className="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20">
               <ShieldAlert className="h-8 w-8 text-orange-500" />
@@ -151,7 +151,7 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <nav className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+          <nav className="space-y-2 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
             {[
               { id: 'overview', label: 'Dashboard', icon: BarChart3 },
               { id: 'users', label: 'User Hub', icon: Users },
@@ -186,7 +186,7 @@ const AdminPanel = () => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-12 overflow-y-auto bg-gray-50/50 dark:bg-gray-950/50">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-12 bg-gray-50/50 dark:bg-gray-950/50">
           <header className="flex justify-between items-start mb-12">
             <div>
               <motion.h2 
@@ -248,8 +248,8 @@ const AdminPanel = () => {
                 >
                   {[
                     { label: 'Total Users', value: stats.users, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                    { label: 'Pending Approvals', value: stats.pendingApprovals, icon: UserPlus, color: 'text-purple-500', bg: 'bg-purple-500/10' },
                     { label: 'Questions', value: stats.questions, icon: FileText, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-                    { label: 'Answers', value: stats.answers, icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-500/10' },
                     { label: 'Safety Reports', value: stats.pendingReports, icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10' }
                   ].map((stat, i) => (
                     <div key={i} className="glass-card p-10 rounded-[2.5rem] flex flex-col items-center text-center group hover:scale-[1.02] transition-all">
@@ -326,18 +326,35 @@ const AdminPanel = () => {
                             </div>
                           </td>
                           <td className="px-10 py-6">
-                            {u.is_active ? (
-                              <div className="flex items-center gap-2 text-green-500 font-black text-[10px] uppercase tracking-widest">
-                                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" /> Operational
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-red-500 font-black text-[10px] uppercase tracking-widest">
-                                <div className="h-2 w-2 rounded-full bg-red-500" /> Suspended
-                              </div>
-                            )}
+                            <div className="flex flex-col gap-2">
+                              {u.is_approved ? (
+                                u.is_active ? (
+                                  <div className="flex items-center gap-2 text-green-500 font-black text-[10px] uppercase tracking-widest">
+                                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" /> Operational
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 text-red-500 font-black text-[10px] uppercase tracking-widest">
+                                    <div className="h-2 w-2 rounded-full bg-red-500" /> Suspended
+                                  </div>
+                                )
+                              ) : (
+                                <div className="flex items-center gap-2 text-orange-500 font-black text-[10px] uppercase tracking-widest">
+                                  <div className="h-2 w-2 rounded-full bg-orange-500 animate-bounce" /> Pending Approval
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="px-10 py-6 text-right">
                             <div className="flex justify-end gap-2">
+                              {!u.is_approved && (
+                                <button 
+                                  onClick={async () => { await api.patch(`/admin/users/${u.id}/approve`); fetchAllData(); }}
+                                  className="p-3 text-orange-500 hover:bg-orange-500/10 rounded-xl transition-all"
+                                  title="Approve User"
+                                >
+                                  <CheckCircle className="h-5 w-5" />
+                                </button>
+                              )}
                               <button onClick={() => { setEditingUser(u); setUserForm({...u, password: ''}); setShowUserModal(true); }} className="p-3 text-gray-400 hover:text-orange-500 hover:bg-orange-500/10 rounded-xl transition-all"><Edit3 className="h-5 w-5" /></button>
                               <button onClick={() => toggleStatus(u.id, u.is_active)} className={`p-3 rounded-xl transition-all ${u.is_active ? 'text-red-400 hover:bg-red-500/10' : 'text-green-400 hover:bg-green-500/10'}`}>
                                 {u.is_active ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -372,7 +389,7 @@ const AdminPanel = () => {
                             <tr key={q.id} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
                               <td className="px-10 py-6">
                                 <p className="font-bold text-gray-900 dark:text-white text-lg line-clamp-1">{q.title}</p>
-                                <p className="text-sm text-gray-500 line-clamp-1 mt-1">{q.content}</p>
+                                <p className="text-sm text-gray-500 line-clamp-1 mt-1">{q.body}</p>
                                 <div className="flex gap-4 mt-3 text-[10px] font-black uppercase tracking-widest text-gray-400">
                                   <span>BY {q.author_name}</span>
                                   <span>•</span>
@@ -412,11 +429,15 @@ const AdminPanel = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                       {data.reports.map(r => (
-                        <tr key={r.report_id} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
+                        <tr key={r.id} className="hover:bg-white dark:hover:bg-white/5 transition-colors">
                           <td className="px-10 py-6">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-orange-500">{r.target_type}</span>
-                            <p className="font-bold text-gray-900 dark:text-white text-lg mt-1 line-clamp-2">{r.target_preview || 'Content removed'}</p>
-                            <p className="text-xs text-gray-500 mt-1">Reported by {r.reporter_name}</p>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-orange-500">
+                              {r.question_id ? 'Question' : 'Answer'}
+                            </span>
+                            <p className="font-bold text-gray-900 dark:text-white text-lg mt-1 line-clamp-2">
+                              {r.question_title || r.answer_body || 'Content unavailable'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">Reported by {r.reporter_nickname}</p>
                           </td>
                           <td className="px-10 py-6">
                             <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl">
@@ -425,8 +446,23 @@ const AdminPanel = () => {
                           </td>
                           <td className="px-10 py-6 text-right">
                             <div className="flex justify-end gap-3">
-                              <button onClick={() => deleteAction(`/admin/${r.target_type}s/${r.target_id}`, `Permanently delete this ${r.target_type}?`)} className="px-5 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-600/20">Purge</button>
-                              <button onClick={() => api.patch(`/admin/${r.target_type}s/${r.target_id}/hide`).then(fetchAllData)} className="px-5 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest">Hide</button>
+                              <button 
+                                onClick={() => deleteAction(
+                                  r.question_id ? `/admin/questions/${r.question_id}` : `/admin/answers/${r.answer_id}`, 
+                                  `Permanently delete this ${r.question_id ? 'question' : 'answer'}?`
+                                )} 
+                                className="px-5 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-600/20"
+                              >
+                                Purge
+                              </button>
+                              <button 
+                                onClick={() => api.patch(
+                                  r.question_id ? `/admin/questions/${r.question_id}/hide` : `/admin/answers/${r.answer_id}/hide`
+                                ).then(fetchAllData)} 
+                                className="px-5 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"
+                              >
+                                Hide
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -452,7 +488,7 @@ const AdminPanel = () => {
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => { setEditingTag(tag); setTagForm({name: tag.name}); setShowTagModal(true); }} className="p-2 text-gray-400 hover:text-orange-500"><Edit3 className="h-4 w-4" /></button>
-                        <button onClick={() => deleteAction(`/api/tags/${tag.id}`, 'Delete this tag?')} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => deleteAction(`/tags/${tag.id}`, 'Delete this tag?')} className="p-2 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
                   ))}

@@ -4,6 +4,7 @@ import {
     adminCreateUser,
     adminUpdateUser,
     adminDeleteUser,
+    approveUser,
     getPlatformStats,
     getAllContent,
     deactivateUser,
@@ -30,6 +31,7 @@ router.patch('/users/:id', adminUpdateUser)
 router.delete('/users/:id', adminDeleteUser)
 router.patch('/users/:id/deactivate', deactivateUser)
 router.patch('/users/:id/reactivate', reactivateUser)
+router.patch('/users/:id/approve', approveUser)
 
 // Platform Management
 router.get('/stats', getPlatformStats)

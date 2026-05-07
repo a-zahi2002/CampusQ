@@ -8,13 +8,31 @@ import bcrypt from 'bcrypt'
 export const getAllUsers = async (req, res) => {
     try {
         const result = await pool.query(
-            `SELECT id, email, nickname, role, points, is_active, registration_number, created_at
+            `SELECT id, email, nickname, role, points, is_active, is_approved, registration_number, created_at
              FROM users
              ORDER BY created_at DESC`
         )
         return res.status(200).json({ users: result.rows })
     } catch (err) {
         console.error('getAllUsers error:', err)
+        return res.status(500).json({ message: 'Server error.' })
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/admin/users/:id/approve
+// ─────────────────────────────────────────────────────────────
+export const approveUser = async (req, res) => {
+    const { id } = req.params
+    try {
+        const result = await pool.query(
+            'UPDATE users SET is_approved = TRUE WHERE id = $1 RETURNING id',
+            [id]
+        )
+        if (result.rows.length === 0) return res.status(404).json({ message: 'User not found.' })
+        return res.status(200).json({ message: 'User approved successfully.' })
+    } catch (err) {
+        console.error('approveUser error:', err)
         return res.status(500).json({ message: 'Server error.' })
     }
 }
@@ -52,7 +70,7 @@ export const adminCreateUser = async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 export const adminUpdateUser = async (req, res) => {
     const { id } = req.params
-    const { email, nickname, role, is_active, registration_number } = req.body
+    const { email, nickname, role, is_active, registration_number, is_approved } = req.body
 
     try {
         const result = await pool.query(
@@ -62,10 +80,11 @@ export const adminUpdateUser = async (req, res) => {
                  role = COALESCE($3, role),
                  is_active = COALESCE($4, is_active),
                  registration_number = COALESCE($5, registration_number),
+                 is_approved = COALESCE($6, is_approved),
                  updated_at = NOW()
-             WHERE id = $6
-             RETURNING id, email, nickname, role, is_active`,
-            [email, nickname, role, is_active, registration_number, id]
+             WHERE id = $7
+             RETURNING id, email, nickname, role, is_active, is_approved`,
+            [email, nickname, role, is_active, registration_number, is_approved, id]
         )
 
         if (result.rows.length === 0) return res.status(404).json({ message: 'User not found.' })
@@ -101,13 +120,15 @@ export const getPlatformStats = async (req, res) => {
         const questionsCount = await pool.query('SELECT COUNT(*) FROM questions')
         const answersCount = await pool.query('SELECT COUNT(*) FROM answers')
         const reportsCount = await pool.query('SELECT COUNT(*) FROM reports WHERE is_resolved = FALSE')
+        const pendingApprovals = await pool.query('SELECT COUNT(*) FROM users WHERE is_approved = FALSE')
 
         return res.status(200).json({
             stats: {
                 users: parseInt(usersCount.rows[0].count),
                 questions: parseInt(questionsCount.rows[0].count),
                 answers: parseInt(answersCount.rows[0].count),
-                pendingReports: parseInt(reportsCount.rows[0].count)
+                pendingReports: parseInt(reportsCount.rows[0].count),
+                pendingApprovals: parseInt(pendingApprovals.rows[0].count)
             }
         })
     } catch (err) {
@@ -124,13 +145,13 @@ export const getAllContent = async (req, res) => {
         const questions = await pool.query(`
             SELECT q.*, u.nickname as author_name 
             FROM questions q 
-            JOIN users u ON q.author_id = u.id 
+            JOIN users u ON q.user_id = u.id 
             ORDER BY q.created_at DESC LIMIT 50
         `)
         const answers = await pool.query(`
             SELECT a.*, u.nickname as author_name 
             FROM answers a 
-            JOIN users u ON a.author_id = u.id 
+            JOIN users u ON a.user_id = u.id 
             ORDER BY a.created_at DESC LIMIT 50
         `)
         return res.status(200).json({ questions: questions.rows, answers: answers.rows })

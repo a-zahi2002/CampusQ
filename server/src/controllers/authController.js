@@ -11,7 +11,7 @@ dotenv.config()
 // ─────────────────────────────────────────────────────────────
 export const register = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase()
-    const { password, nickname, role } = req.body
+    const { password, nickname, role, registration_number } = req.body
 
     // Validate required fields
     if (!email || !password || !nickname || !role) {
@@ -36,26 +36,18 @@ export const register = async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Insert user
+        // Insert user - set is_approved to FALSE for new registrations
         const result = await pool.query(
-            `INSERT INTO users (email, password, nickname, role)
-             VALUES ($1, $2, $3, $4)
-             RETURNING id, nickname, role, is_active`,
-            [email, hashedPassword, nickname, role]
+            `INSERT INTO users (email, password, nickname, role, registration_number, is_approved)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING id, nickname, role, is_active, is_approved`,
+            [email, hashedPassword, nickname, role, registration_number || null, false]
         )
 
         const user = result.rows[0]
 
-        // Issue JWT
-        const token = jwt.sign(
-            { id: user.id, nickname: user.nickname, role: user.role, is_active: user.is_active },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        )
-
         return res.status(201).json({
-            message: 'Registration successful.',
-            token,
+            message: 'Registration submitted. Please wait for an administrator to approve your account.',
             user: { id: user.id, nickname: user.nickname, role: user.role }
         })
 
@@ -78,7 +70,7 @@ export const login = async (req, res) => {
 
     try {
         const result = await pool.query(
-            'SELECT id, email, password, nickname, role, points, is_active FROM users WHERE email = $1',
+            'SELECT id, email, password, nickname, role, points, is_active, is_approved FROM users WHERE email = $1',
             [email]
         )
 
@@ -92,6 +84,11 @@ export const login = async (req, res) => {
         const valid = await bcrypt.compare(password, user.password)
         if (!valid) {
             return res.status(400).json({ message: 'Invalid email or password.' })
+        }
+
+        // Check approval status
+        if (!user.is_approved) {
+            return res.status(403).json({ message: 'Your account is pending administrator approval.' })
         }
 
         // Check account status

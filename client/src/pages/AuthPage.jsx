@@ -87,7 +87,7 @@ const AuthPage = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-100 dark:bg-orange-900/10 rounded-full blur-3xl opacity-50" />
       </div>
 
-      <div className="relative w-full max-w-5xl h-[700px] glass-card rounded-[3rem] border-transparent overflow-hidden flex flex-col md:flex-row transition-all duration-500 shadow-2xl shadow-orange-500/10">
+      <div className="relative w-full max-w-5xl h-[600px] glass-card rounded-[3rem] border-transparent overflow-hidden flex flex-col md:flex-row transition-all duration-500 shadow-2xl shadow-orange-500/10">
         
         {/* Sliding Info Panel (Overlay) */}
         <motion.div 
@@ -132,19 +132,19 @@ const AuthPage = () => {
         <div className="relative flex-1 flex flex-col md:flex-row h-full bg-white dark:bg-[#0A0A0A]">
           
           {/* Register Form Section */}
-          <div className={`flex-1 h-full flex flex-col justify-center p-10 md:p-20 transition-opacity duration-300 ${isLogin && 'opacity-0 pointer-events-none md:opacity-100'}`}>
-            <div className="max-w-md mx-auto w-full space-y-10">
+          <div className={`flex-1 h-full flex flex-col justify-center p-8 md:p-12 transition-opacity duration-300 ${isLogin && 'opacity-0 pointer-events-none md:opacity-100'}`}>
+            <div className="max-w-md mx-auto w-full space-y-6">
               <div className="md:hidden text-center mb-10">
                 <img src="/logo.png" alt="CampusQ" className="h-16 w-16 mx-auto mb-4" />
                 <h1 className="text-4xl font-black text-gray-900 dark:text-white">CampusQ</h1>
               </div>
 
               <div className="space-y-3">
-                <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Create Account</h2>
-                <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">Join 5,000+ students & lecturers</p>
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Create Account</h2>
+                <p className="text-gray-500 dark:text-gray-400 font-medium text-base">Join 5,000+ students & lecturers</p>
               </div>
 
-              <form onSubmit={handleRegisterSubmit} className="space-y-6">
+              <form onSubmit={handleRegisterSubmit} className="space-y-4">
                 {error && !isLogin && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -228,7 +228,7 @@ const AuthPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     disabled={loading}
-                    className="w-full py-5 bg-orange-600 text-white font-black rounded-[1.5rem] shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all disabled:opacity-70 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+                    className="w-full py-4 bg-orange-600 text-white font-black rounded-[1.5rem] shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all disabled:opacity-70 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                   >
                     {loading ? 'Initializing...' : 'Create Account'}
                     <CheckCircle2 className="h-5 w-5" />
@@ -244,19 +244,19 @@ const AuthPage = () => {
           </div>
           
           {/* Login Form Section */}
-          <div className={`flex-1 h-full flex flex-col justify-center p-10 md:p-20 transition-opacity duration-300 ${!isLogin && 'opacity-0 pointer-events-none md:opacity-100'}`}>
-            <div className="max-w-md mx-auto w-full space-y-10">
+          <div className={`flex-1 h-full flex flex-col justify-center p-8 md:p-12 transition-opacity duration-300 ${!isLogin && 'opacity-0 pointer-events-none md:opacity-100'}`}>
+            <div className="max-w-md mx-auto w-full space-y-6">
               <div className="md:hidden text-center mb-10">
                 <img src="/logo.png" alt="CampusQ" className="h-16 w-16 mx-auto mb-4" />
                 <h1 className="text-4xl font-black text-gray-900 dark:text-white">CampusQ</h1>
               </div>
               
               <div className="space-y-3">
-                <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h2>
-                <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">Sign in to your academic portal</p>
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Welcome Back</h2>
+                <p className="text-gray-500 dark:text-gray-400 font-medium text-base">Sign in to your academic portal</p>
               </div>
 
-              <form onSubmit={handleLoginSubmit} className="space-y-6">
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
                 {error && isLogin && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -313,7 +313,7 @@ const AuthPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={loading}
-                  className="w-full py-5 bg-orange-600 text-white font-black rounded-[1.5rem] shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all disabled:opacity-70 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+                  className="w-full py-4 bg-orange-600 text-white font-black rounded-[1.5rem] shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all disabled:opacity-70 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                 >
                   {loading ? 'Verifying...' : 'Sign In'}
                   <ArrowRight className="h-5 w-5" />
