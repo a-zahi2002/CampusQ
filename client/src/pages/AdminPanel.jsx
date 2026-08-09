@@ -82,9 +82,9 @@ const AdminPanel = () => {
     e.preventDefault();
     try {
       if (editingTag) {
-        await api.patch(`/api/tags/${editingTag.id}`, tagForm);
+        await api.patch(`/tags/${editingTag.id}`, tagForm);
       } else {
-        await api.post('/api/tags', tagForm);
+        await api.post('/tags', tagForm);
       }
       setShowTagModal(false);
       setEditingTag(null);

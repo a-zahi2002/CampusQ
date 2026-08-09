@@ -145,7 +145,7 @@ const LeaderboardPage = () => {
                               <Star className="h-5 w-5 text-orange-600 dark:text-orange-500 fill-orange-600" />
                             </div>
                             <span className="text-3xl font-black text-gray-900 dark:text-white">
-                              {user.points || 0}
+                              {user.points ?? user.monthly_points ?? 0}
                             </span>
                           </div>
                         </td>

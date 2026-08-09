@@ -66,7 +66,7 @@ const FeedPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-gray-950 transition-colors duration-500">
-      <Navbar />
+      <Navbar onInterestsSaved={() => fetchQuestions(searchQuery, selectedTag)} />
       <div className="flex max-w-7xl mx-auto">
         {/* Sidebar for Tags */}
       <aside className="w-72 hidden lg:block sticky top-24 h-[calc(100vh-6rem)] p-6">

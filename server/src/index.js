@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 import pool from './config/db.js'
 
 // ── Route imports ──────────────────────────────────────────────
@@ -13,6 +15,7 @@ import leaderboardRoutes from './routes/leaderboardRoutes.js'
 import tagRoutes         from './routes/tagRoutes.js'
 import reportRoutes      from './routes/reportRoutes.js'
 import adminRoutes       from './routes/adminRoutes.js'
+import userRoutes        from './routes/userRoutes.js'
 
 // ── Tag-controller imports for /api/user/interests ────────────
 import { updateUserInterests, getUserInterests } from './controllers/tagController.js'
@@ -23,8 +26,28 @@ dotenv.config()
 const app  = express()
 const PORT = process.env.PORT || 5000
 
-// ── Global middleware ──────────────────────────────────────────
-app.use(cors())
+// ── Rate Limiting ──────────────────────────────────────────────
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many requests, please try again later.' }
+})
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 25,
+    message: { message: 'Too many authentication attempts. Please try again later.' }
+})
+
+// ── Security Middleware ───────────────────────────────────────
+app.use(helmet())
+app.use(globalLimiter)
+app.use(cors({
+    origin: process.env.CLIENT_URL || '*',
+    credentials: true
+}))
 app.use(express.json())
 
 // ── DB connectivity check ─────────────────────────────────────
@@ -37,7 +60,7 @@ pool.query('SELECT NOW()', (err, result) => {
 })
 
 // ── Routes ────────────────────────────────────────────────────
-app.use('/api/auth',        authRoutes)
+app.use('/api/auth',        authLimiter, authRoutes)
 app.use('/api/questions',   questionRoutes)
 app.use('/api/answers',     answerRoutes)
 app.use('/api/comments',    commentRoutes)
@@ -46,6 +69,7 @@ app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/tags',        tagRoutes)
 app.use('/api/reports',     reportRoutes)
 app.use('/api/admin',       adminRoutes)
+app.use('/api/user',        userRoutes)
 
 // /api/user/interests (per spec: PUT and GET at /api/user/interests)
 app.put('/api/user/interests',  authenticate, updateUserInterests)

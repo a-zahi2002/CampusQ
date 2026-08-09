@@ -6,14 +6,16 @@
 
 -- ── 1. USERS ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    id          SERIAL PRIMARY KEY,
-    email       VARCHAR(150) UNIQUE NOT NULL,
-    password    VARCHAR(255) NOT NULL,
-    nickname    VARCHAR(50)  UNIQUE NOT NULL,
-    role        VARCHAR(20)  NOT NULL CHECK (role IN ('student','lecturer','admin')),
-    points      INTEGER      NOT NULL DEFAULT 0,
-    is_active   BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at  TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id                  SERIAL PRIMARY KEY,
+    email               VARCHAR(150) UNIQUE NOT NULL,
+    password            VARCHAR(255) NOT NULL,
+    nickname            VARCHAR(50)  UNIQUE NOT NULL,
+    role                VARCHAR(20)  NOT NULL CHECK (role IN ('student','lecturer','admin')),
+    registration_number VARCHAR(100),
+    is_approved         BOOLEAN      NOT NULL DEFAULT FALSE,
+    points              INTEGER      NOT NULL DEFAULT 0,
+    is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at          TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ── 2. QUESTIONS ──────────────────────────────────────────────

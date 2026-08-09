@@ -218,7 +218,7 @@ const QuestionDetailPage = () => {
                     
                     <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-500 px-4 py-2 rounded-2xl border border-orange-200/50 dark:border-orange-500/20">
                       <Star className="h-5 w-5 fill-orange-500" />
-                      <span className="font-black text-xl">{parseFloat(answer.avg_rating).toFixed(1)}</span>
+                      <span className="font-black text-xl">{parseFloat(answer.avg_stars ?? answer.avg_rating ?? 0).toFixed(1)}</span>
                     </div>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ const QuestionDetailPage = () => {
                               >
                                 <Star 
                                   className={`h-5 w-5 transition-colors ${
-                                    star <= Math.round(answer.avg_rating) ? 'fill-orange-500 text-orange-500' : 'text-gray-300 dark:text-white/10'
+                                    star <= Math.round(answer.avg_stars ?? answer.avg_rating ?? 0) ? 'fill-orange-500 text-orange-500' : 'text-gray-300 dark:text-white/10'
                                   }`}
                                 />
                               </button>

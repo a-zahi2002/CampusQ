@@ -1,10 +1,10 @@
 import express from 'express'
-import { updateTagPreferences, getTagPreferences } from '../controllers/userController.js'
-import authenticateToken from '../middleware/authMiddleware.js'
+import { updateUserInterests, getUserInterests } from '../controllers/tagController.js'
+import authenticate from '../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-router.put('/preferences/tags', authenticateToken, updateTagPreferences)
-router.get('/preferences/tags', authenticateToken, getTagPreferences)
+router.put('/interests', authenticate, updateUserInterests)
+router.get('/interests', authenticate, getUserInterests)
 
 export default router
