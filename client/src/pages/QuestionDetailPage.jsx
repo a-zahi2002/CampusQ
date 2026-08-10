@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CommentSection from '../components/CommentSection';
+import Navbar from '../components/Navbar';
 import { 
   User, Clock, Tag as TagIcon, CheckCircle, 
   Star, ChevronLeft, Loader2, Send, MessageSquare, Sparkles 
@@ -130,7 +131,7 @@ const QuestionDetailPage = () => {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-8">
-            {question.tags.map((tag, i) => (
+            {question.tags && question.tags.map((tag, i) => (
               <span key={i} className="flex items-center gap-2 bg-orange-100 dark:bg-orange-950/30 text-orange-600 dark:text-orange-500 text-xs font-black px-4 py-2 rounded-xl uppercase tracking-wider border border-orange-200/50 dark:border-orange-500/20">
                 <TagIcon className="h-3.5 w-3.5" />
                 {tag}
