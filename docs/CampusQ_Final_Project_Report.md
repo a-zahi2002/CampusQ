@@ -347,7 +347,7 @@ The project was divided into four primary sprint iterations:
 - **Sprint 1 (Architecture & Database Foundations):** Schema design, PostgreSQL table creation, JWT authentication setup, and baseline Express router configuration.
 - **Sprint 2 (Core Q&A & Role Logic):** Implementation of question creation, tagging, answer submissions, lecturer comment restrictions, and frontend page integration.
 - **Sprint 3 (Gamification & Moderation):** Star rating logic, point calculations, leaderboard queries, interest-based feed recommendation algorithm, and admin moderation dashboards.
-- **Sprint 4 (Quality Assurance, Auditing & Hardening):** Full codebase audit, automated Jest test suite creation (`api.test.js`), SQL parameterization verification, property key alignment fixes, and Docker containerization.
+- **Sprint 4 (Quality Assurance, Auditing & Hardening):** Full codebase audit, automated Jest test suite creation (`api.test.js`), SQL parameterization verification, property key alignment fixes, and production hardening.
 
 ---
 
@@ -358,7 +358,7 @@ The project was divided into four primary sprint iterations:
 | **Programming Languages** | JavaScript (ES6+ Node & React) | Core application logic on frontend and backend. |
 | | SQL (PostgreSQL Dialect) | Relational queries, schema DDL, indexing, constraints. |
 | **Frontend Framework** | React 18 | Component-based UI rendering single-page application. |
-| **Build Tool & Bundler** | Vite | Lightning-fast HMR dev server and production bundler. |
+| | Vite | Lightning-fast HMR dev server and production bundler. |
 | **Styling & Icons** | Tailwind CSS & Lucide React | Utility-first styling framework and icon sets. |
 | **Client Routing & HTTP** | React Router DOM v6 & Axios | Declarative client routing and HTTP request handling. |
 | **Backend Runtime** | Node.js (v18+) | Asynchronous event-driven server runtime environment. |
@@ -369,7 +369,6 @@ The project was divided into four primary sprint iterations:
 | | `bcrypt` (Cost Factor 10) | One-way cryptographic password hashing algorithm. |
 | | `cors` & `dotenv` | Cross-Origin Resource Sharing & Environment variable manager. |
 | **Testing Framework** | Jest & Supertest | Automated unit and integration testing engine. |
-| **DevOps & Containerization**| Docker & Docker Compose | Containerized application orchestration for deployment. |
 | **Version Control** | Git & GitHub | Distributed version control and source code repository. |
 
 ---
@@ -489,7 +488,7 @@ To further expand the capability and reach of CampusQ, three realistic technical
 
 To deploy and execute the CampusQ platform locally for demonstration or evaluation, follow the steps below:
 
-1. **Environment Setup & Prerequisites:** Ensure Node.js (v18+), npm, and Docker / PostgreSQL (v14+) are installed on the host system.
+1. **Environment Setup & Prerequisites:** Ensure Node.js (v18+), npm, and PostgreSQL (v14+) are installed on the host system.
 2. **Database Initialization:** Run database creation and schema migration scripts located in `/server/scripts/init-db.sql`.
 3. **Environment Configuration (`.env`):**
    ```env

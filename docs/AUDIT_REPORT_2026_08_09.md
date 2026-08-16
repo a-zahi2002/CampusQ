@@ -115,7 +115,7 @@ This section evaluates the system against the explicit functional requirements s
 4. **Remove SQL Injection Vulnerability** (Refactor or delete `userController.js` in favor of `tagController.js`).
 5. **Clean Up Dead Code** (Delete `LoginPage.jsx`, `RegisterPage.jsx`, `authRoutes_bak.js`).
 6. **Implement Test Suite** (Add Jest/Supertest backend tests & Vitest/React Testing Library frontend tests).
-7. **Production Hardening** (Add `helmet`, `express-rate-limit`, CORS origin restrictions, and Dockerfile).
+7. **Production Hardening** (Add `helmet`, `express-rate-limit`, and CORS origin restrictions).
 
 ---
 
